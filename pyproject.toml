@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "polyglotka"
+version = "0.1"
+description = ""
+authors = ["Konstantin Kolesnyak <constkolesnyak@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "polyglotka", from = "src" }]
+
+[tool.poetry.scripts]
+polyglotka = 'polyglotka.main:main'
+
+
+[tool.poetry.dependencies]
+python = "3.13.*"
+path = ">=17.1.1,<18.0.0"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
