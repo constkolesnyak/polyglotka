@@ -13,6 +13,12 @@ polyglotka = 'polyglotka.main:main'
 [tool.poetry.dependencies]
 python = "3.13.*"
 path = ">=17.1.1,<18.0.0"
+plotly = "^6.3.0"
+pytest = "^8.4.2"
+pydantic = "^2.11.9"
+pydantic-settings = "^2.10.1"
+funcy = "^2.0"
+fire = "^0.7.1"
 
 
 [build-system]
