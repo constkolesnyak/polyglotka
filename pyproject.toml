@@ -19,6 +19,8 @@ pydantic = "^2.11.9"
 pydantic-settings = "^2.10.1"
 funcy = "^2.0"
 fire = "^0.7.1"
+dash = "^3.2.0"
+waitress = "^3.0.0"
 
 
 [build-system]
