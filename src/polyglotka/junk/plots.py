@@ -60,6 +60,7 @@ def generate_color_palette(languages: list[str]):
         'combined': {
             'LEARNING': 'rgb(108, 92, 231)',  # Purple - energetic learning
             'KNOWN': 'rgb(162, 155, 254)',  # Light Purple - calm knowledge
+            'ALL': 'rgb(255, 255, 255)',  # White - all combined
         },
         'language_combined': {},
     }
@@ -92,7 +93,7 @@ class PlotPoints(BaseModel):
         return bool(self.dates and self.counts)
 
 
-def _organize_words() -> tuple[dict, dict, dict]:
+def _organize_words() -> tuple[dict, dict, dict, list[LRWord]]:
     """Load and organize words by different dimensions."""
     words = list(read_lr_words())
     by_lang_stage, by_lang, by_stage = (
@@ -106,7 +107,7 @@ def _organize_words() -> tuple[dict, dict, dict]:
         by_lang[word.language].append(word)
         by_stage[word.learning_stage].append(word)
 
-    return dict(by_lang_stage), dict(by_lang), dict(by_stage)
+    return dict(by_lang_stage), dict(by_lang), dict(by_stage), words
 
 
 def _create_time_series(words: list[LRWord]) -> PlotPoints:
@@ -134,25 +135,28 @@ def _create_trace(
         name=name,
         line=dict(color=color, **line_props),
         marker=dict(**marker_props),
-        visible=True,
+        visible='legendonly' if 'ALL' in name else True,
     )
 
 
 def create_learning_analytics_figure() -> go.Figure:
     """Create comprehensive learning analytics figure."""
-    by_lang_stage, by_lang, by_stage = _organize_words()
+    by_lang_stage, by_lang, by_stage, all_words = _organize_words()
     fig = go.Figure()
 
     languages = sorted(by_lang.keys())
     stages = sorted(by_stage.keys())
     colors = generate_color_palette(languages)
 
+    # Collect all traces to sort them later
+    traces = []
+
     # Helper function to add traces if data exists
     def add_trace_if_data(words: list[LRWord], trace_func, *args):
         if words:
             trace = trace_func(_create_time_series(words), *args)
             if trace:
-                fig.add_trace(trace)
+                traces.append(trace)
 
     # Language-stage traces
     for lang in languages:
@@ -198,6 +202,23 @@ def create_learning_analytics_figure() -> go.Figure:
             ),
             lang,
         )
+
+    # ALL - ALL trace (all languages, all stages)
+    add_trace_if_data(
+        all_words,
+        lambda ts: _create_trace(
+            'ALL - ALL',
+            ts,
+            colors['combined']['ALL'],
+            {'width': plot_config.combined_line_width + 1, 'dash': 'solid'},
+            {'size': plot_config.combined_marker_size + 1, 'symbol': 'circle'},
+        ),
+    )
+
+    # Sort traces by name and add to figure
+    traces.sort(key=lambda t: t.name)
+    for trace in traces:
+        fig.add_trace(trace)
 
     _configure_figure_layout(fig)
     return fig
