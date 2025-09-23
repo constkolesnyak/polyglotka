@@ -1,3 +1,4 @@
+import colorsys
 import os
 import threading
 import time
@@ -5,13 +6,13 @@ import webbrowser
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
-from typing import Dict, List, NoReturn, Optional, Tuple
+from typing import NoReturn, Optional
 from urllib.parse import urlparse
 
 import dash
 import plotly.graph_objects as go
 import waitress
+from pydantic import BaseModel
 
 from polyglotka.junk.read_lr_words import LRWord, read_lr_words
 
@@ -24,39 +25,8 @@ SHUTDOWN_DELAY = 3.0
 CHART_HEIGHT = 800
 TAB_TITLE = 'Polyglotka Learning Analytics'
 
-# Color scheme for different languages and stages
-COLOR_PALETTE = {
-    'ja': {'LEARNING': 'rgb(255, 107, 107)', 'KNOWN': 'rgb(78, 205, 196)'},  # Red  # Teal
-    'de': {'LEARNING': 'rgb(69, 183, 209)', 'KNOWN': 'rgb(249, 202, 36)'},  # Blue  # Yellow
-    'combined': {
-        'LEARNING': 'rgb(108, 92, 231)',  # Purple
-        'KNOWN': 'rgb(162, 155, 254)',  # Light Purple
-    },
-    'language_combined': {
-        'de': 'rgb(150, 150, 150)',  # Gray
-        'ja': 'rgb(200, 200, 200)',  # Light Gray
-    },
-}
 
-
-class Language(Enum):
-    """Supported languages for learning analytics."""
-
-    GERMAN = 'de'
-    JAPANESE = 'ja'
-
-
-class LearningStage(Enum):
-    """Learning stages for vocabulary acquisition."""
-
-    LEARNING = 'LEARNING'
-    KNOWN = 'KNOWN'
-
-
-@dataclass
-class PlotConfig:
-    """Configuration for plot appearance and behavior."""
-
+class PlotConfig(BaseModel):
     line_width: int = 3
     marker_size: int = 4
     combined_line_width: int = 4
@@ -67,26 +37,69 @@ class PlotConfig:
     legend_font_size: int = 14
 
 
-@dataclass
-class TimeSeriesData:
-    """Container for time series data points."""
+plot_config = PlotConfig()  # tdc
 
-    dates: List[datetime]
-    counts: List[int]
 
-    def is_empty(self) -> bool:
-        """Check if the time series data is empty."""
-        return len(self.dates) == 0 or len(self.counts) == 0
+def hsl_to_rgb(h: int, s: int, l: int) -> str:
+    r, g, b = colorsys.hls_to_rgb(h / 360, l / 100, s / 100)
+    return f'rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})'
+
+
+def language_code_to_hue(lang_code: str) -> int:
+    hash_value = 0
+    for i, char in enumerate(lang_code.lower()):
+        hash_value += (ord(char) - ord('a') + 1) * (i + 1) * 37
+    GOLDEN_RATIO = 0.618033988749
+    hue = (hash_value * GOLDEN_RATIO * 360) % 360
+
+    return int(hue)
+
+
+def generate_color_palette(languages: list[str]):
+    color_palette = {  # tdc class?
+        'combined': {
+            'LEARNING': 'rgb(108, 92, 231)',  # Purple - energetic learning
+            'KNOWN': 'rgb(162, 155, 254)',  # Light Purple - calm knowledge
+        },
+        'language_combined': {},
+    }
+
+    for lang in languages:
+        base_hue = language_code_to_hue(lang)
+
+        # Learning stage: more saturated, warmer hue
+        learning_hue = (base_hue - 15) % 360  # Shift towards red/orange
+        learning_color = hsl_to_rgb(learning_hue, 80, 55)  # High sat, medium light
+
+        # Known stage: less saturated, cooler hue
+        known_hue = (base_hue + 20) % 360  # Shift towards blue/green
+        known_color = hsl_to_rgb(known_hue, 65, 70)  # Lower sat, higher light
+
+        # Combined language trace: neutral, desaturated
+        combined_color = hsl_to_rgb(base_hue, 35, 60)  # Low sat for subtlety
+
+        color_palette[lang] = {'LEARNING': learning_color, 'KNOWN': known_color}
+        color_palette['language_combined'][lang] = combined_color
+
+    return color_palette
+
+
+class PlotPoints(BaseModel):
+    dates: list[datetime]
+    counts: list[int]
+
+    def __bool__(self) -> bool:
+        return bool(self.dates and self.counts)
 
 
 @dataclass
 class WordDatasets:
     """Organized word datasets for analytics."""
 
-    all_words: List[LRWord]
-    by_language_and_stage: Dict[Tuple[str, str], List[LRWord]]
-    by_language: Dict[str, List[LRWord]]
-    by_stage: Dict[str, List[LRWord]]
+    all_words: list[LRWord]
+    by_language_and_stage: dict[tuple[str, str], list[LRWord]]
+    by_language: dict[str, list[LRWord]]
+    by_stage: dict[str, list[LRWord]]
 
 
 def load_and_organize_words() -> WordDatasets:
@@ -117,17 +130,17 @@ def load_and_organize_words() -> WordDatasets:
     )
 
 
-def create_cumulative_time_series(words: List[LRWord]) -> TimeSeriesData:
+def create_cumulative_time_series(words: list[LRWord]) -> PlotPoints:
     """Create cumulative time series data from a list of words.
 
     Args:
-        words: List of LRWord objects to process
+        words: list of LRWord objects to process
 
     Returns:
         TimeSeriesData: Dates and cumulative counts for plotting
     """
     if not words:
-        return TimeSeriesData(dates=[], counts=[])
+        return PlotPoints(dates=[], counts=[])
 
     # Sort words by date to ensure proper cumulative counting
     sorted_words = sorted(words, key=lambda w: w.date)
@@ -135,40 +148,44 @@ def create_cumulative_time_series(words: List[LRWord]) -> TimeSeriesData:
     dates = [word.date for word in sorted_words]
     counts = list(range(1, len(sorted_words) + 1))
 
-    return TimeSeriesData(dates=dates, counts=counts)
+    return PlotPoints(dates=dates, counts=counts)
 
 
 def create_language_stage_trace(
-    language: str, stage: str, time_series: TimeSeriesData, config: PlotConfig
+    language: str,
+    stage: str,
+    time_series: PlotPoints,
+    color_palette: dict,
 ) -> Optional[go.Scatter]:
     """Create a trace for a specific language-stage combination.
 
     Args:
-        language: Language code (e.g., 'de', 'ja')
+        language: Language code (e.g., 'de', 'ja', 'fr', etc.)
         stage: Learning stage ('LEARNING' or 'KNOWN')
         time_series: Time series data for the trace
         config: Plot configuration settings
+        color_palette: Dynamic color palette for languages
 
     Returns:
         Plotly Scatter trace or None if data is empty
     """
-    if time_series.is_empty():
+    if not time_series:
         return None
 
-    color = COLOR_PALETTE[language][stage]
+    color = color_palette[language][stage]
     return go.Scatter(
         x=time_series.dates,
         y=time_series.counts,
         mode='lines+markers',
         name=f'{language.upper()} - {stage}',
-        line=dict(color=color, width=config.line_width),
-        marker=dict(size=config.marker_size),
+        line=dict(color=color, width=plot_config.line_width),
+        marker=dict(size=plot_config.marker_size),
         visible=True,
     )
 
 
 def create_combined_stage_trace(
-    stage: str, time_series: TimeSeriesData, config: PlotConfig
+    stage: str, time_series: PlotPoints, color_palette: dict
 ) -> Optional[go.Scatter]:
     """Create a trace for combined languages by stage.
 
@@ -176,49 +193,51 @@ def create_combined_stage_trace(
         stage: Learning stage ('LEARNING' or 'KNOWN')
         time_series: Time series data for the trace
         config: Plot configuration settings
+        color_palette: Dynamic color palette for languages
 
     Returns:
         Plotly Scatter trace or None if data is empty
     """
-    if time_series.is_empty():
+    if not time_series:
         return None
 
-    color = COLOR_PALETTE['combined'][stage]
+    color = color_palette['combined'][stage]
     return go.Scatter(
         x=time_series.dates,
         y=time_series.counts,
         mode='lines+markers',
         name=f'ALL LANGUAGES - {stage}',
-        line=dict(color=color, width=config.combined_line_width, dash='dash'),
-        marker=dict(size=config.combined_marker_size, symbol='diamond'),
+        line=dict(color=color, width=plot_config.combined_line_width, dash='dash'),
+        marker=dict(size=plot_config.combined_marker_size, symbol='diamond'),
         visible=True,
     )
 
 
 def create_combined_language_trace(
-    language: str, time_series: TimeSeriesData, config: PlotConfig
+    language: str, time_series: PlotPoints, color_palette: dict
 ) -> Optional[go.Scatter]:
     """Create a trace for all stages of a specific language.
 
     Args:
-        language: Language code (e.g., 'de', 'ja')
+        language: Language code (e.g., 'de', 'ja', 'fr', etc.)
         time_series: Time series data for the trace
         config: Plot configuration settings
+        color_palette: Dynamic color palette for languages
 
     Returns:
         Plotly Scatter trace or None if data is empty
     """
-    if time_series.is_empty():
+    if not time_series:
         return None
 
-    color = COLOR_PALETTE['language_combined'][language]
+    color = color_palette['language_combined'][language]
     return go.Scatter(
         x=time_series.dates,
         y=time_series.counts,
         mode='lines+markers',
         name=f'{language.upper()} - ALL STAGES',
-        line=dict(color=color, width=config.combined_line_width, dash='dot'),
-        marker=dict(size=config.combined_marker_size, symbol='square'),
+        line=dict(color=color, width=plot_config.combined_line_width, dash='dot'),
+        marker=dict(size=plot_config.combined_marker_size, symbol='square'),
         visible=True,
     )
 
@@ -230,80 +249,82 @@ def create_learning_analytics_figure() -> go.Figure:
         Interactive Plotly figure with learning progress visualization
     """
     datasets = load_and_organize_words()
-    config = PlotConfig()
     fig = go.Figure()
 
-    # Language-stage combination traces
-    language_stage_combinations = [
-        (Language.GERMAN.value, LearningStage.LEARNING.value),
-        (Language.GERMAN.value, LearningStage.KNOWN.value),
-        (Language.JAPANESE.value, LearningStage.LEARNING.value),
-        (Language.JAPANESE.value, LearningStage.KNOWN.value),
-    ]
+    # Get all languages and stages dynamically from the data
+    all_languages = sorted(datasets.by_language.keys())
+    all_stages = sorted(datasets.by_stage.keys())
 
-    for language, stage in language_stage_combinations:
-        words = datasets.by_language_and_stage.get((language, stage), [])
-        time_series = create_cumulative_time_series(words)
-        trace = create_language_stage_trace(language, stage, time_series, config)
-        if trace:
-            fig.add_trace(trace)
+    # Generate dynamic color palette based on available languages
+    color_palette = generate_color_palette(all_languages)
+
+    # Language-stage combination traces (dynamic based on available data)
+    for language in all_languages:
+        for stage in all_stages:
+            words = datasets.by_language_and_stage.get((language, stage), [])
+            if words:  # Only create traces for combinations that have data
+                time_series = create_cumulative_time_series(words)
+                trace = create_language_stage_trace(
+                    language, stage, time_series, color_palette
+                )
+                if trace:
+                    fig.add_trace(trace)
 
     # Combined stage traces (all languages)
-    for stage in [LearningStage.LEARNING.value, LearningStage.KNOWN.value]:
+    for stage in all_stages:
         words = datasets.by_stage.get(stage, [])
-        time_series = create_cumulative_time_series(words)
-        trace = create_combined_stage_trace(stage, time_series, config)
-        if trace:
-            fig.add_trace(trace)
+        if words:  # Only create traces for stages that have data
+            time_series = create_cumulative_time_series(words)
+            trace = create_combined_stage_trace(stage, time_series, color_palette)
+            if trace:
+                fig.add_trace(trace)
 
     # Combined language traces (all stages)
-    for language in [Language.GERMAN.value, Language.JAPANESE.value]:
+    for language in all_languages:
         words = datasets.by_language.get(language, [])
-        time_series = create_cumulative_time_series(words)
-        trace = create_combined_language_trace(language, time_series, config)
-        if trace:
-            fig.add_trace(trace)
+        if words:  # Only create traces for languages that have data
+            time_series = create_cumulative_time_series(words)
+            trace = create_combined_language_trace(language, time_series, color_palette)
+            if trace:
+                fig.add_trace(trace)
 
     # Apply layout configuration
-    _configure_figure_layout(fig, config)
+    _configure_figure_layout(fig)
     return fig
 
 
-def _configure_figure_layout(fig: go.Figure, config: PlotConfig) -> None:
-    """Configure the layout and styling of the figure.
+def _configure_figure_layout(fig: go.Figure) -> None:
 
-    Args:
-        fig: Plotly figure to configure
-        config: Plot configuration settings
-    """
-    fig.update_layout(
+    fig.update_layout(  # pyright: ignore
         title=dict(
             text='Language Learning Progress Analytics - Interactive Dashboard',
-            font=dict(size=config.title_font_size, color='white'),
+            font=dict(size=plot_config.title_font_size, color='white'),
             x=0.5,
         ),
         xaxis=dict(
-            title=dict(text='Date', font=dict(size=config.axis_font_size, color='white')),
+            title=dict(
+                text='Date', font=dict(size=plot_config.axis_font_size, color='white')
+            ),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
-            tickfont=dict(size=config.tick_font_size, color='white'),
+            tickfont=dict(size=plot_config.tick_font_size, color='white'),
         ),
         yaxis=dict(
             title=dict(
                 text='Cumulative Word Count',
-                font=dict(size=config.axis_font_size, color='white'),
+                font=dict(size=plot_config.axis_font_size, color='white'),
             ),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
-            tickfont=dict(size=config.tick_font_size, color='white'),
+            tickfont=dict(size=plot_config.tick_font_size, color='white'),
         ),
         template='plotly_dark',
         plot_bgcolor=BACKGROUND_COLOR,
         paper_bgcolor=BACKGROUND_COLOR,
-        font=dict(color='white', size=config.legend_font_size),
+        font=dict(color='white', size=plot_config.legend_font_size),
         showlegend=True,
         legend=dict(
-            font=dict(size=config.legend_font_size, color='white'),
+            font=dict(size=plot_config.legend_font_size, color='white'),
             bgcolor='rgba(0,0,0,0.6)',
             bordercolor='rgba(255,255,255,0.3)',
             borderwidth=1,

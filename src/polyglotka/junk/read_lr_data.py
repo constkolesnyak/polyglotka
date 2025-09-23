@@ -460,3 +460,15 @@ def main(max_display: int = 5) -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# Keep original functions for backward compatibility
+def create_trig_data() -> dict[str, list[float]]:
+    x = [i * 0.1 for i in range(100)]
+    return {
+        'x': x,
+        'sin_x': [math.sin(val) for val in x],
+        'cos_x': [math.cos(val) for val in x],
+        'sin_2x': [math.sin(2 * val) for val in x],
+        'cos_2x': [math.cos(2 * val) for val in x],
+    }
