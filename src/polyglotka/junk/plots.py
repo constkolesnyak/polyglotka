@@ -92,203 +92,113 @@ class PlotPoints(BaseModel):
         return bool(self.dates and self.counts)
 
 
-@dataclass
-class WordDatasets:
-    """Organized word datasets for analytics."""
-
-    all_words: list[LRWord]
-    by_language_and_stage: dict[tuple[str, str], list[LRWord]]
-    by_language: dict[str, list[LRWord]]
-    by_stage: dict[str, list[LRWord]]
-
-
-def load_and_organize_words() -> WordDatasets:
-    """Load words from data source and organize them by different dimensions.
-
-    Returns:
-        WordDatasets: Organized word data for analytics
-    """
+def _organize_words() -> tuple[dict, dict, dict]:
+    """Load and organize words by different dimensions."""
     words = list(read_lr_words())
+    by_lang_stage, by_lang, by_stage = (
+        defaultdict(list),
+        defaultdict(list),
+        defaultdict(list),
+    )
 
-    # Initialize collections
-    by_lang_stage = defaultdict(list)
-    by_lang = defaultdict(list)
-    by_stage = defaultdict(list)
-
-    # Organize words by different dimensions
     for word in words:
-        key = (word.language, word.learning_stage)
-        by_lang_stage[key].append(word)
+        by_lang_stage[(word.language, word.learning_stage)].append(word)
         by_lang[word.language].append(word)
         by_stage[word.learning_stage].append(word)
 
-    return WordDatasets(
-        all_words=words,
-        by_language_and_stage=dict(by_lang_stage),
-        by_language=dict(by_lang),
-        by_stage=dict(by_stage),
-    )
+    return dict(by_lang_stage), dict(by_lang), dict(by_stage)
 
 
-def create_cumulative_time_series(words: list[LRWord]) -> PlotPoints:
-    """Create cumulative time series data from a list of words.
-
-    Args:
-        words: list of LRWord objects to process
-
-    Returns:
-        TimeSeriesData: Dates and cumulative counts for plotting
-    """
+def _create_time_series(words: list[LRWord]) -> PlotPoints:
+    """Create cumulative time series from words."""
     if not words:
         return PlotPoints(dates=[], counts=[])
 
-    # Sort words by date to ensure proper cumulative counting
     sorted_words = sorted(words, key=lambda w: w.date)
-
-    dates = [word.date for word in sorted_words]
-    counts = list(range(1, len(sorted_words) + 1))
-
-    return PlotPoints(dates=dates, counts=counts)
-
-
-def create_language_stage_trace(
-    language: str,
-    stage: str,
-    time_series: PlotPoints,
-    color_palette: dict,
-) -> Optional[go.Scatter]:
-    """Create a trace for a specific language-stage combination.
-
-    Args:
-        language: Language code (e.g., 'de', 'ja', 'fr', etc.)
-        stage: Learning stage ('LEARNING' or 'KNOWN')
-        time_series: Time series data for the trace
-        config: Plot configuration settings
-        color_palette: Dynamic color palette for languages
-
-    Returns:
-        Plotly Scatter trace or None if data is empty
-    """
-    if not time_series:
-        return None
-
-    color = color_palette[language][stage]
-    return go.Scatter(
-        x=time_series.dates,
-        y=time_series.counts,
-        mode='lines+markers',
-        name=f'{language.upper()} - {stage}',
-        line=dict(color=color, width=plot_config.line_width),
-        marker=dict(size=plot_config.marker_size),
-        visible=True,
+    return PlotPoints(
+        dates=[w.date for w in sorted_words], counts=list(range(1, len(sorted_words) + 1))
     )
 
 
-def create_combined_stage_trace(
-    stage: str, time_series: PlotPoints, color_palette: dict
+def _create_trace(
+    name: str, time_series: PlotPoints, color: str, line_props: dict, marker_props: dict
 ) -> Optional[go.Scatter]:
-    """Create a trace for combined languages by stage.
-
-    Args:
-        stage: Learning stage ('LEARNING' or 'KNOWN')
-        time_series: Time series data for the trace
-        config: Plot configuration settings
-        color_palette: Dynamic color palette for languages
-
-    Returns:
-        Plotly Scatter trace or None if data is empty
-    """
+    """Create a plotly trace with given properties."""
     if not time_series:
         return None
 
-    color = color_palette['combined'][stage]
     return go.Scatter(
         x=time_series.dates,
         y=time_series.counts,
         mode='lines+markers',
-        name=f'ALL LANGUAGES - {stage}',
-        line=dict(color=color, width=plot_config.combined_line_width, dash='dash'),
-        marker=dict(size=plot_config.combined_marker_size, symbol='diamond'),
-        visible=True,
-    )
-
-
-def create_combined_language_trace(
-    language: str, time_series: PlotPoints, color_palette: dict
-) -> Optional[go.Scatter]:
-    """Create a trace for all stages of a specific language.
-
-    Args:
-        language: Language code (e.g., 'de', 'ja', 'fr', etc.)
-        time_series: Time series data for the trace
-        config: Plot configuration settings
-        color_palette: Dynamic color palette for languages
-
-    Returns:
-        Plotly Scatter trace or None if data is empty
-    """
-    if not time_series:
-        return None
-
-    color = color_palette['language_combined'][language]
-    return go.Scatter(
-        x=time_series.dates,
-        y=time_series.counts,
-        mode='lines+markers',
-        name=f'{language.upper()} - ALL STAGES',
-        line=dict(color=color, width=plot_config.combined_line_width, dash='dot'),
-        marker=dict(size=plot_config.combined_marker_size, symbol='square'),
+        name=name,
+        line=dict(color=color, **line_props),
+        marker=dict(**marker_props),
         visible=True,
     )
 
 
 def create_learning_analytics_figure() -> go.Figure:
-    """Create comprehensive learning analytics with all plots on the same axes.
-
-    Returns:
-        Interactive Plotly figure with learning progress visualization
-    """
-    datasets = load_and_organize_words()
+    """Create comprehensive learning analytics figure."""
+    by_lang_stage, by_lang, by_stage = _organize_words()
     fig = go.Figure()
 
-    # Get all languages and stages dynamically from the data
-    all_languages = sorted(datasets.by_language.keys())
-    all_stages = sorted(datasets.by_stage.keys())
+    languages = sorted(by_lang.keys())
+    stages = sorted(by_stage.keys())
+    colors = generate_color_palette(languages)
 
-    # Generate dynamic color palette based on available languages
-    color_palette = generate_color_palette(all_languages)
-
-    # Language-stage combination traces (dynamic based on available data)
-    for language in all_languages:
-        for stage in all_stages:
-            words = datasets.by_language_and_stage.get((language, stage), [])
-            if words:  # Only create traces for combinations that have data
-                time_series = create_cumulative_time_series(words)
-                trace = create_language_stage_trace(
-                    language, stage, time_series, color_palette
-                )
-                if trace:
-                    fig.add_trace(trace)
-
-    # Combined stage traces (all languages)
-    for stage in all_stages:
-        words = datasets.by_stage.get(stage, [])
-        if words:  # Only create traces for stages that have data
-            time_series = create_cumulative_time_series(words)
-            trace = create_combined_stage_trace(stage, time_series, color_palette)
+    # Helper function to add traces if data exists
+    def add_trace_if_data(words: list[LRWord], trace_func, *args):
+        if words:
+            trace = trace_func(_create_time_series(words), *args)
             if trace:
                 fig.add_trace(trace)
 
-    # Combined language traces (all stages)
-    for language in all_languages:
-        words = datasets.by_language.get(language, [])
-        if words:  # Only create traces for languages that have data
-            time_series = create_cumulative_time_series(words)
-            trace = create_combined_language_trace(language, time_series, color_palette)
-            if trace:
-                fig.add_trace(trace)
+    # Language-stage traces
+    for lang in languages:
+        for stage in stages:
+            words = by_lang_stage.get((lang, stage), [])
+            add_trace_if_data(
+                words,
+                lambda ts, l, s: _create_trace(
+                    f'{l.upper()} - {s}',
+                    ts,
+                    colors[l][s],
+                    {'width': plot_config.line_width},
+                    {'size': plot_config.marker_size},
+                ),
+                lang,
+                stage,
+            )
 
-    # Apply layout configuration
+    # Combined stage traces
+    for stage in stages:
+        add_trace_if_data(
+            by_stage.get(stage, []),
+            lambda ts, s: _create_trace(
+                f'ALL - {s}',
+                ts,
+                colors['combined'][s],
+                {'width': plot_config.combined_line_width, 'dash': 'dash'},
+                {'size': plot_config.combined_marker_size, 'symbol': 'diamond'},
+            ),
+            stage,
+        )
+
+    # Combined language traces
+    for lang in languages:
+        add_trace_if_data(
+            by_lang.get(lang, []),
+            lambda ts, l: _create_trace(
+                f'{l.upper()} - ALL',
+                ts,
+                colors['language_combined'][l],
+                {'width': plot_config.combined_line_width, 'dash': 'dot'},
+                {'size': plot_config.combined_marker_size, 'symbol': 'square'},
+            ),
+            lang,
+        )
+
     _configure_figure_layout(fig)
     return fig
 
