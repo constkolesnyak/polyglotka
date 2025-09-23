@@ -34,7 +34,7 @@ class LRWord(BaseModel):
         return data
 
 
-def read_lr_words():
+def read_lr_words() -> set[LRWord]:
     console = Console()
     progress = Progress(
         SpinnerColumn(style='bright_magenta'),
@@ -46,63 +46,15 @@ def read_lr_words():
     )
     data_dir = '/Users/konst/Downloads'
 
-    lr_words: set[LRWord] = set()
-    for item in read_lr_data(data_dir, progress):
-        if isinstance(item, SavedWord):
-            lr_word = LRWord(**item.model_dump())
-            icecream.ic(lr_word)
+    all_words: list[LRWord] = [
+        LRWord(**item.model_dump())
+        for item in read_lr_data(data_dir, progress)
+        if isinstance(item, SavedWord)
+    ]
 
+    unique_words: set[LRWord] = set()
+    for word in sorted(all_words, key=lambda w: w.date):
+        unique_words.discard(word)  # Remove older
+        unique_words.add(word)  # Add newer
 
-# tdc VVV move to tests
-
-
-def main(max_display: int = 5) -> None:
-    """Main function to process and display language learning data.
-
-    Args:
-        max_display: Maximum number of items to display in detail
-    """
-    console = Console()
-    progress = Progress(
-        SpinnerColumn(style='bright_magenta'),
-        BarColumn(complete_style='bright_magenta'),
-        TextColumn('[bright_magenta]•'),
-        TextColumn('[bright_magenta]{task.completed:,} / {task.total:,} files processed'),
-        console=console,
-        transient=True,
-    )
-    data_dir = '/Users/konst/Downloads'
-
-    print(f"Reading data with full SavedItem models...")
-    print(f"Will display first {max_display} items in detail.")
-
-    total_items = 0
-    word_count = 0
-    phrase_count = 0
-
-    try:
-        for item in read_lr_data(data_dir, progress):
-            total_items += 1
-
-            if total_items <= max_display:
-                try:
-                    lr_word = LRWord(**item.model_dump())
-                    icecream.ic(lr_word)
-                except Exception as e:
-                    print(f"Failed to convert item {total_items} to LRWord: {e}")
-                    print(f"Item type: {type(item).__name__}")
-                    print(f"Item keys: {list(item.model_dump().keys())}")
-
-    except Exception as e:
-        print(f"\nError during processing: {e}")
-        return
-
-    print(f'\n=== Final Summary ===')
-    print(f'Total items processed: {total_items:,}')
-    print(f'Words: {word_count:,}')
-    print(f'Phrases: {phrase_count:,}')
-    print(f'Other/Unknown: {total_items - word_count - phrase_count:,}')
-
-
-if __name__ == "__main__":
-    read_lr_words()
+    return unique_words
