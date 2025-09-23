@@ -49,7 +49,9 @@ def create_figure() -> go.Figure:
         template='plotly_dark',
         plot_bgcolor=BACKGROUND_COLOR,
         paper_bgcolor=BACKGROUND_COLOR,
+        legend=dict(font=dict(size=20)),
     )
+    fig.update_yaxes(ticksuffix='  ')  # pyright: ignore
 
     return fig
 
