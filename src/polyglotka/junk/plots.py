@@ -68,13 +68,13 @@ def generate_color_palette(languages: list[str]):
     for lang in languages:
         base_hue = language_code_to_hue(lang)
 
-        # Learning stage: more saturated, warmer hue
-        learning_hue = (base_hue - 15) % 360  # Shift towards red/orange
-        learning_color = hsl_to_rgb(learning_hue, 80, 55)  # High sat, medium light
+        # Learning stage: warm, highly saturated, vibrant colors (reds/oranges/yellows)
+        learning_hue = (base_hue - 30) % 360  # Stronger shift towards warm colors
+        learning_color = hsl_to_rgb(learning_hue, 90, 50)  # Very high sat, medium-low light
 
-        # Known stage: less saturated, cooler hue
-        known_hue = (base_hue + 20) % 360  # Shift towards blue/green
-        known_color = hsl_to_rgb(known_hue, 65, 70)  # Lower sat, higher light
+        # Known stage: cool, desaturated, calm colors (blues/greens/purples)
+        known_hue = (base_hue + 45) % 360  # Stronger shift towards cool colors
+        known_color = hsl_to_rgb(known_hue, 45, 75)  # Much lower sat, higher light
 
         # Combined language trace: neutral, desaturated
         combined_color = hsl_to_rgb(base_hue, 35, 60)  # Low sat for subtlety
