@@ -4,19 +4,20 @@ import threading
 import time
 import webbrowser
 from collections import defaultdict
-from dataclasses import dataclass
-from datetime import datetime
-from typing import NoReturn, Optional
+from datetime import datetime, timedelta
+from typing import Any, NoReturn
 from urllib.parse import urlparse
 
 import dash
 import plotly.graph_objects as go
 import waitress
+from funcy import pluck_attr
 from pydantic import BaseModel
 
+from polyglotka.junk.read_lr_data import LearningStage
 from polyglotka.junk.read_lr_words import LRWord, read_lr_words
 
-# Configuration Constants
+# Configuration Constants #tdc
 BACKGROUND_COLOR = '#171717'
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 8050
@@ -26,7 +27,7 @@ CHART_HEIGHT = 800
 TAB_TITLE = 'Polyglotka Learning Analytics'
 
 
-class PlotConfig(BaseModel):
+class PlotConfig(BaseModel):  # tdc
     line_width: int = 3
     marker_size: int = 4
     combined_line_width: int = 4
@@ -85,147 +86,119 @@ def generate_color_palette(languages: list[str]):
     return color_palette
 
 
-class PlotPoints(BaseModel):
-    dates: list[datetime]
-    counts: list[int]
+class WordDicts:
+    def __init__(self, words: list[LRWord]) -> None:
+        self.all_words = words
+        self.by_lang: defaultdict[str, list[LRWord]] = defaultdict(list)
+        self.by_stage: defaultdict[LearningStage, list[LRWord]] = defaultdict(list)
+        self.by_lang_stage: defaultdict[
+            tuple[str, LearningStage],
+            list[LRWord],
+        ] = defaultdict(list)
 
-    def __bool__(self) -> bool:
-        return bool(self.dates and self.counts)
-
-
-def _organize_words() -> tuple[dict, dict, dict, list[LRWord]]:
-    """Load and organize words by different dimensions."""
-    words = list(read_lr_words())
-    by_lang_stage, by_lang, by_stage = (
-        defaultdict(list),
-        defaultdict(list),
-        defaultdict(list),
-    )
-
-    for word in words:
-        by_lang_stage[(word.language, word.learning_stage)].append(word)
-        by_lang[word.language].append(word)
-        by_stage[word.learning_stage].append(word)
-
-    return dict(by_lang_stage), dict(by_lang), dict(by_stage), words
+        for word in self.all_words:
+            self.by_lang[word.language].append(word)
+            self.by_stage[word.learning_stage].append(word)
+            self.by_lang_stage[(word.language, word.learning_stage)].append(word)
 
 
-def _create_time_series(words: list[LRWord]) -> PlotPoints:
-    """Create cumulative time series from words."""
-    if not words:
-        return PlotPoints(dates=[], counts=[])
+def smooth_xy_data(words: list[LRWord]) -> tuple[list[datetime], list[int]]:
+    word_dates: list[datetime] = sorted(pluck_attr('date', words))
+    start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
+    hourly_points = [
+        start + timedelta(hours=i)
+        for i in range(int((end - start).total_seconds() // 3600) + 1)
+    ]
+    all_x: list[datetime] = sorted(set(word_dates + hourly_points))
+    y_data: list[int] = [sum(1 for wd in word_dates if wd <= x) for x in all_x]
+    return all_x, y_data
 
-    sorted_words = sorted(words, key=lambda w: w.date)
-    return PlotPoints(
-        dates=[w.date for w in sorted_words], counts=list(range(1, len(sorted_words) + 1))
-    )
 
-
-def _create_trace(
-    name: str, time_series: PlotPoints, color: str, line_props: dict, marker_props: dict
-) -> Optional[go.Scatter]:
-    """Create a plotly trace with given properties."""
-    if not time_series:
-        return None
+def create_trace(
+    language: str,
+    learning_stage: str,
+    words: list[LRWord],
+    color: str,
+    line_params: dict[Any, Any],
+    marker_params: dict[Any, Any],
+) -> go.Scatter:
+    x_data, y_data = smooth_xy_data(words)
+    name = f'{language.upper()} - {learning_stage.capitalize()}'
 
     return go.Scatter(
-        x=time_series.dates,
-        y=time_series.counts,
+        x=x_data,
+        y=y_data,
         mode='lines+markers',
         name=name,
-        line=dict(color=color, **line_props),
-        marker=dict(**marker_props),
-        visible='legendonly' if 'ALL' in name else True,
+        line=dict(color=color, **line_params),
+        marker=marker_params,
+        visible='legendonly' if 'all' in name.lower() else True,
     )
 
 
 def create_learning_analytics_figure() -> go.Figure:
-    """Create comprehensive learning analytics figure."""
-    by_lang_stage, by_lang, by_stage, all_words = _organize_words()
-    fig = go.Figure()
+    wds = WordDicts(list(read_lr_words()))  # tdc pass
+    fig: go.Figure = go.Figure()
+    languages = wds.by_lang.keys()
+    stages = wds.by_stage.keys()
+    colors = generate_color_palette(sorted(wds.by_lang.keys()))
+    traces: list[go.Scatter] = []
+    ALL = 'ALL'  # all langs and/or all stages
 
-    languages = sorted(by_lang.keys())
-    stages = sorted(by_stage.keys())
-    colors = generate_color_palette(languages)
-
-    # Collect all traces to sort them later
-    traces = []
-
-    # Helper function to add traces if data exists
-    def add_trace_if_data(words: list[LRWord], trace_func, *args):
-        if words:
-            trace = trace_func(_create_time_series(words), *args)
-            if trace:
-                traces.append(trace)
-
-    # Language-stage traces
     for lang in languages:
         for stage in stages:
-            words = by_lang_stage.get((lang, stage), [])
-            add_trace_if_data(
-                words,
-                lambda ts, l, s: _create_trace(
-                    f'{l.upper()} - {s}',
-                    ts,
-                    colors[l][s],
+            traces.append(
+                create_trace(
+                    lang,
+                    stage,
+                    wds.by_lang_stage[(lang, stage)],
+                    colors[lang][stage],
                     {'width': plot_config.line_width},
                     {'size': plot_config.marker_size},
-                ),
-                lang,
-                stage,
+                )
             )
-
-    # Combined stage traces
-    for stage in stages:
-        add_trace_if_data(
-            by_stage.get(stage, []),
-            lambda ts, s: _create_trace(
-                f'ALL - {s}',
-                ts,
-                colors['combined'][s],
-                {'width': plot_config.combined_line_width, 'dash': 'dash'},
-                {'size': plot_config.combined_marker_size, 'symbol': 'diamond'},
-            ),
-            stage,
-        )
-
-    # Combined language traces
-    for lang in languages:
-        add_trace_if_data(
-            by_lang.get(lang, []),
-            lambda ts, l: _create_trace(
-                f'{l.upper()} - ALL',
-                ts,
-                colors['language_combined'][l],
+        traces.append(
+            create_trace(
+                lang,
+                ALL,
+                wds.by_lang[lang],
+                colors['language_combined'][lang],
                 {'width': plot_config.combined_line_width, 'dash': 'dot'},
                 {'size': plot_config.combined_marker_size, 'symbol': 'square'},
-            ),
-            lang,
+            )
         )
 
-    # ALL - ALL trace (all languages, all stages)
-    add_trace_if_data(
-        all_words,
-        lambda ts: _create_trace(
-            'ALL - ALL',
-            ts,
+    for stage in stages:
+        traces.append(
+            create_trace(
+                ALL,
+                stage,
+                wds.by_stage[stage],
+                colors['combined'][stage],
+                {'width': plot_config.combined_line_width, 'dash': 'dash'},
+                {'size': plot_config.combined_marker_size, 'symbol': 'diamond'},
+            )
+        )
+
+    traces.append(
+        create_trace(
+            ALL,
+            ALL,
+            wds.all_words,
             colors['combined']['ALL'],
             {'width': plot_config.combined_line_width + 1, 'dash': 'solid'},
             {'size': plot_config.combined_marker_size + 1, 'symbol': 'circle'},
-        ),
+        )
     )
 
-    # Sort traces by name and add to figure
-    traces.sort(key=lambda t: t.name)
-    for trace in traces:
-        fig.add_trace(trace)
+    for trace in sorted(traces, key=lambda t: t.name):  # pyright: ignore
+        fig.add_trace(trace)  # pyright: ignore
 
     _configure_figure_layout(fig)
     return fig
 
 
 def _configure_figure_layout(fig: go.Figure) -> None:
-
     fig.update_layout(  # pyright: ignore
         title=dict(
             text='Language Learning Progress Analytics - Interactive Dashboard',
