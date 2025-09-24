@@ -74,10 +74,7 @@ class WordDicts:
 def smooth_xy_data(words: list[LRWord]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
     start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
-    hourly_points = [
-        start + timedelta(hours=i)
-        for i in range(int((end - start).total_seconds() // 3600) + 1)
-    ]
+    hourly_points = [start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)]
     all_x: list[datetime] = sorted(set(word_dates + hourly_points))
     y_data: list[int] = [sum(1 for wd in word_dates if wd <= x) for x in all_x]
     return all_x, y_data

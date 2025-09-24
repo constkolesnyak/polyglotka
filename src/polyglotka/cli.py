@@ -12,9 +12,7 @@ class Command(StrEnum):
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
     if command not in list(Command):
-        raise ValueError(
-            f'Command "{command}" is invalid\n  Use one of these: ' + ', '.join(Command)
-        )
+        raise ValueError(f'Command "{command}" is invalid\n  Use one of these: ' + ', '.join(Command))
 
     config.override(config_upd)
 
