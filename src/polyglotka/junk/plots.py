@@ -5,7 +5,7 @@ import time
 import webbrowser
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, NoReturn
+from typing import Any, Iterable, NoReturn
 from urllib.parse import urlparse
 
 import dash
@@ -25,6 +25,8 @@ BROWSER_DELAY = 0.3
 SHUTDOWN_DELAY = 3.0
 CHART_HEIGHT = 800
 TAB_TITLE = 'Polyglotka Learning Analytics'
+
+ALL = 'ALL'  # all langs or all learning stages
 
 
 class PlotConfig(BaseModel):  # tdc
@@ -56,34 +58,24 @@ def language_code_to_hue(lang_code: str) -> int:
     return int(hue)
 
 
-def generate_color_palette(languages: list[str]):
-    color_palette = {  # tdc class?
-        'combined': {
-            'LEARNING': 'rgb(108, 92, 231)',  # Purple - energetic learning
-            'KNOWN': 'rgb(162, 155, 254)',  # Light Purple - calm knowledge
-            'ALL': 'rgb(255, 255, 255)',  # White - all combined
-        },
-        'language_combined': {},
-    }
+def get_color(lang: str, stage: str) -> str:
+    base_hue = language_code_to_hue(lang)
 
-    for lang in languages:
-        base_hue = language_code_to_hue(lang)
-
-        # Learning stage: warm, highly saturated, vibrant colors (reds/oranges/yellows)
-        learning_hue = (base_hue - 30) % 360  # Stronger shift towards warm colors
-        learning_color = hsl_to_rgb(learning_hue, 90, 50)  # Very high sat, medium-low light
-
-        # Known stage: cool, desaturated, calm colors (blues/greens/purples)
-        known_hue = (base_hue + 45) % 360  # Stronger shift towards cool colors
-        known_color = hsl_to_rgb(known_hue, 45, 75)  # Much lower sat, higher light
-
-        # Combined language trace: neutral, desaturated
-        combined_color = hsl_to_rgb(base_hue, 35, 60)  # Low sat for subtlety
-
-        color_palette[lang] = {'LEARNING': learning_color, 'KNOWN': known_color}
-        color_palette['language_combined'][lang] = combined_color
-
-    return color_palette
+    match (lang, stage):
+        case ('ALL', 'ALL'):
+            return 'rgb(255, 255, 255)'
+        case ('ALL', LearningStage.LEARNING):
+            return 'rgb(108, 92, 231)'
+        case ('ALL', LearningStage.KNOWN):
+            return 'rgb(162, 155, 254)'
+        case (_, 'ALL'):
+            return hsl_to_rgb(base_hue, 35, 60)
+        case (_, LearningStage.LEARNING):
+            return hsl_to_rgb((base_hue - 30) % 360, 90, 50)
+        case (_, LearningStage.KNOWN):
+            return hsl_to_rgb((base_hue + 45) % 360, 45, 75)
+        case _:
+            raise ValueError('Bad stage')
 
 
 class WordDicts:
@@ -118,7 +110,6 @@ def create_trace(
     language: str,
     learning_stage: str,
     words: list[LRWord],
-    color: str,
     line_params: dict[Any, Any],
     marker_params: dict[Any, Any],
 ) -> go.Scatter:
@@ -130,9 +121,9 @@ def create_trace(
         y=y_data,
         mode='lines+markers',
         name=name,
-        line=dict(color=color, **line_params),
+        line=dict(color=get_color(language, learning_stage), **line_params),
         marker=marker_params,
-        visible='legendonly' if 'all' in name.lower() else True,
+        visible='legendonly' if ALL in name.upper() else True,
     )
 
 
@@ -141,9 +132,7 @@ def create_learning_analytics_figure() -> go.Figure:
     fig: go.Figure = go.Figure()
     languages = wds.by_lang.keys()
     stages = wds.by_stage.keys()
-    colors = generate_color_palette(sorted(wds.by_lang.keys()))
     traces: list[go.Scatter] = []
-    ALL = 'ALL'  # all langs and/or all stages
 
     for lang in languages:
         for stage in stages:
@@ -152,7 +141,6 @@ def create_learning_analytics_figure() -> go.Figure:
                     lang,
                     stage,
                     wds.by_lang_stage[(lang, stage)],
-                    colors[lang][stage],
                     {'width': plot_config.line_width},
                     {'size': plot_config.marker_size},
                 )
@@ -162,7 +150,6 @@ def create_learning_analytics_figure() -> go.Figure:
                 lang,
                 ALL,
                 wds.by_lang[lang],
-                colors['language_combined'][lang],
                 {'width': plot_config.combined_line_width, 'dash': 'dot'},
                 {'size': plot_config.combined_marker_size, 'symbol': 'square'},
             )
@@ -174,7 +161,6 @@ def create_learning_analytics_figure() -> go.Figure:
                 ALL,
                 stage,
                 wds.by_stage[stage],
-                colors['combined'][stage],
                 {'width': plot_config.combined_line_width, 'dash': 'dash'},
                 {'size': plot_config.combined_marker_size, 'symbol': 'diamond'},
             )
@@ -185,7 +171,6 @@ def create_learning_analytics_figure() -> go.Figure:
             ALL,
             ALL,
             wds.all_words,
-            colors['combined']['ALL'],
             {'width': plot_config.combined_line_width + 1, 'dash': 'solid'},
             {'size': plot_config.combined_marker_size + 1, 'symbol': 'circle'},
         )
