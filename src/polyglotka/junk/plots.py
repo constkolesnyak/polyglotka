@@ -19,16 +19,7 @@ from polyglotka.junk.read_lr_words import LRWord, read_lr_words
 
 BACKGROUND_COLOR = '#171717'
 ALL = 'ALL'  # all langs or all learning stages
-
-
-class PlotConfig(BaseModel):  # tdc
-    title_font_size: int = 28
-    axis_font_size: int = 16
-    tick_font_size: int = 12
-    legend_font_size: int = 14
-
-
-plot_config = PlotConfig()  # tdc
+TITLE = 'Polyglotka Plots'
 
 
 def hsl_to_rgb(h: int, s: int, l: int) -> str:
@@ -104,22 +95,19 @@ def create_trace(
 
     visible = True
     line_width = 3
-    marker_size = 4
     if ALL in name.upper():
-        # visible = 'legendonly' #tdc
+        visible = 'legendonly'
         line_width = 4
-        marker_size = 6
 
     return go.Scatter(
         x=x_data,
         y=y_data,
-        mode='lines+markers',
+        mode='lines',
         name=name,
         line=dict(
             color=get_color(language, learning_stage),
             width=line_width,
         ),
-        marker=dict(size=marker_size),
         visible=visible,
     )
 
@@ -175,34 +163,30 @@ def create_learning_analytics_figure() -> go.Figure:
 def _configure_figure_layout(fig: go.Figure) -> None:
     fig.update_layout(  # pyright: ignore
         title=dict(
-            text='Language Learning Progress Analytics - Interactive Dashboard',
-            font=dict(size=plot_config.title_font_size, color='white'),
+            text=TITLE,
+            font=dict(size=28, color='white'),
             x=0.5,
         ),
         xaxis=dict(
-            title=dict(
-                text='Date', font=dict(size=plot_config.axis_font_size, color='white')
-            ),
+            title=dict(text='Date', font=dict(size=20, color='white')),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
-            tickfont=dict(size=plot_config.tick_font_size, color='white'),
+            tickfont=dict(size=16, color='white'),
         ),
         yaxis=dict(
-            title=dict(
-                text='Cumulative Word Count',
-                font=dict(size=plot_config.axis_font_size, color='white'),
-            ),
+            title=dict(text='Word Count', font=dict(size=20, color='white')),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
-            tickfont=dict(size=plot_config.tick_font_size, color='white'),
+            tickfont=dict(size=16, color='white'),
+            ticksuffix='  ',
         ),
         template='plotly_dark',
         plot_bgcolor=BACKGROUND_COLOR,
         paper_bgcolor=BACKGROUND_COLOR,
-        font=dict(color='white', size=plot_config.legend_font_size),
+        font=dict(color='white', size=25),
         showlegend=True,
         legend=dict(
-            font=dict(size=plot_config.legend_font_size, color='white'),
+            font=dict(size=20, color='white'),
             bgcolor='rgba(0,0,0,0.6)',
             bordercolor='rgba(255,255,255,0.3)',
             borderwidth=1,
@@ -221,19 +205,17 @@ def create_dash_app(figure: go.Figure) -> dash.Dash:
     """Needed for margins to match the background color."""
     app = dash.Dash()
 
-    TAB_TITLE = 'Polyglotka Plots'
     app.index_string = f"""
         <!DOCTYPE html>
         <html>
             <head>
-                {{%metas%}} <title>{TAB_TITLE}</title> {{%favicon%}} {{%css%}}
+                {{%metas%}} <title>{TITLE}</title> {{%favicon%}} {{%css%}}
             </head>
             <body style="background-color:{BACKGROUND_COLOR};">
                 {{%app_entry%}} <footer> {{%config%}} {{%scripts%}} {{%renderer%}} </footer>
             </body>
         </html>
     """
-
     app.layout = dash.html.Div(
         children=[dash.dcc.Graph(figure=figure, style={'height': '100vh'})],
     )
