@@ -5,35 +5,23 @@ import time
 import webbrowser
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Any, Iterable, NoReturn
+from typing import NoReturn
 from urllib.parse import urlparse
 
 import dash
 import plotly.graph_objects as go
 import waitress
-from funcy import pluck_attr
+from funcy import pluck_attr  # pyright: ignore
 from pydantic import BaseModel
 
 from polyglotka.junk.read_lr_data import LearningStage
 from polyglotka.junk.read_lr_words import LRWord, read_lr_words
 
-# Configuration Constants #tdc
 BACKGROUND_COLOR = '#171717'
-SERVER_HOST = '127.0.0.1'
-SERVER_PORT = 8050
-BROWSER_DELAY = 0.3
-SHUTDOWN_DELAY = 3.0
-CHART_HEIGHT = 800
-TAB_TITLE = 'Polyglotka Learning Analytics'
-
 ALL = 'ALL'  # all langs or all learning stages
 
 
 class PlotConfig(BaseModel):  # tdc
-    line_width: int = 3
-    marker_size: int = 4
-    combined_line_width: int = 4
-    combined_marker_size: int = 6
     title_font_size: int = 28
     axis_font_size: int = 16
     tick_font_size: int = 12
@@ -110,20 +98,29 @@ def create_trace(
     language: str,
     learning_stage: str,
     words: list[LRWord],
-    line_params: dict[Any, Any],
-    marker_params: dict[Any, Any],
 ) -> go.Scatter:
     x_data, y_data = smooth_xy_data(words)
     name = f'{language.upper()} - {learning_stage.capitalize()}'
+
+    visible = True
+    line_width = 3
+    marker_size = 4
+    if ALL in name.upper():
+        # visible = 'legendonly' #tdc
+        line_width = 4
+        marker_size = 6
 
     return go.Scatter(
         x=x_data,
         y=y_data,
         mode='lines+markers',
         name=name,
-        line=dict(color=get_color(language, learning_stage), **line_params),
-        marker=marker_params,
-        visible='legendonly' if ALL in name.upper() else True,
+        line=dict(
+            color=get_color(language, learning_stage),
+            width=line_width,
+        ),
+        marker=dict(size=marker_size),
+        visible=visible,
     )
 
 
@@ -141,8 +138,6 @@ def create_learning_analytics_figure() -> go.Figure:
                     lang,
                     stage,
                     wds.by_lang_stage[(lang, stage)],
-                    {'width': plot_config.line_width},
-                    {'size': plot_config.marker_size},
                 )
             )
         traces.append(
@@ -150,8 +145,6 @@ def create_learning_analytics_figure() -> go.Figure:
                 lang,
                 ALL,
                 wds.by_lang[lang],
-                {'width': plot_config.combined_line_width, 'dash': 'dot'},
-                {'size': plot_config.combined_marker_size, 'symbol': 'square'},
             )
         )
 
@@ -161,8 +154,6 @@ def create_learning_analytics_figure() -> go.Figure:
                 ALL,
                 stage,
                 wds.by_stage[stage],
-                {'width': plot_config.combined_line_width, 'dash': 'dash'},
-                {'size': plot_config.combined_marker_size, 'symbol': 'diamond'},
             )
         )
 
@@ -171,8 +162,6 @@ def create_learning_analytics_figure() -> go.Figure:
             ALL,
             ALL,
             wds.all_words,
-            {'width': plot_config.combined_line_width + 1, 'dash': 'solid'},
-            {'size': plot_config.combined_marker_size + 1, 'symbol': 'circle'},
         )
     )
 
@@ -222,7 +211,7 @@ def _configure_figure_layout(fig: go.Figure) -> None:
             xanchor='left',
             yanchor='top',
         ),
-        height=CHART_HEIGHT,
+        height=800,
         hovermode='x unified',
         margin=dict(l=60, r=60, t=80, b=60),
     )
