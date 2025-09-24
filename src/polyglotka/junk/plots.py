@@ -12,14 +12,12 @@ import dash
 import plotly.graph_objects as go
 import waitress
 from funcy import pluck_attr  # pyright: ignore
-from pydantic import BaseModel
 
+from polyglotka.config import config
 from polyglotka.junk.read_lr_data import LearningStage
 from polyglotka.junk.read_lr_words import LRWord, read_lr_words
 
-BACKGROUND_COLOR = '#171717'
 ALL = 'ALL'  # all langs or all learning stages
-TITLE = 'Polyglotka Plots'
 
 
 def hsl_to_rgb(h: int, s: int, l: int) -> str:
@@ -163,7 +161,7 @@ def create_learning_analytics_figure() -> go.Figure:
 def _configure_figure_layout(fig: go.Figure) -> None:
     fig.update_layout(  # pyright: ignore
         title=dict(
-            text=TITLE,
+            text=config.PLOTS_TITLE,
             font=dict(size=28, color='white'),
             x=0.5,
         ),
@@ -181,8 +179,8 @@ def _configure_figure_layout(fig: go.Figure) -> None:
             ticksuffix='  ',
         ),
         template='plotly_dark',
-        plot_bgcolor=BACKGROUND_COLOR,
-        paper_bgcolor=BACKGROUND_COLOR,
+        plot_bgcolor=config.PLOTS_BACKGROUND_COLOR,
+        paper_bgcolor=config.PLOTS_BACKGROUND_COLOR,
         font=dict(color='white', size=25),
         showlegend=True,
         legend=dict(
@@ -209,9 +207,9 @@ def create_dash_app(figure: go.Figure) -> dash.Dash:
         <!DOCTYPE html>
         <html>
             <head>
-                {{%metas%}} <title>{TITLE}</title> {{%favicon%}} {{%css%}}
+                {{%metas%}} <title>{config.PLOTS_TITLE}</title> {{%favicon%}} {{%css%}}
             </head>
-            <body style="background-color:{BACKGROUND_COLOR};">
+            <body style="background-color:{config.PLOTS_BACKGROUND_COLOR};">
                 {{%app_entry%}} <footer> {{%config%}} {{%scripts%}} {{%renderer%}} </footer>
             </body>
         </html>

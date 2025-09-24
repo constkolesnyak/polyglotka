@@ -7,8 +7,7 @@ readme = "README.md"
 packages = [{ include = "polyglotka", from = "src" }]
 
 [tool.poetry.scripts]
-polyglotka = 'polyglotka.main:main'
-
+polyglotka = 'polyglotka.cli:run'
 
 [tool.poetry.dependencies]
 python = "3.13.*"
@@ -21,10 +20,18 @@ funcy = "^2.0"
 fire = "^0.7.1"
 dash = "^3.2.0"
 waitress = "^3.0.0"
-openpyxl = "^3.1.5"
 icecream = "^2.1.8"
 rich = "^14.1.0"
 
+[tool.coverage.run]
+omit = ['tests/*', '__init__.py']
+
+[tool.coverage.report]
+exclude_also = ['raise NotImplementedError']
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
