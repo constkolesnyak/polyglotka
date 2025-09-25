@@ -1,7 +1,7 @@
 from enum import StrEnum, auto
 from typing import Any
 
-import fire
+import fire  # type: ignore
 
 from polyglotka.config import config
 
@@ -19,7 +19,7 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     match command:
         case Command.PLOTS:
             # tdc
-            from polyglotka.junk.plots import main
+            from polyglotka.plots.main import main
 
             main()
 

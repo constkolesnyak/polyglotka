@@ -6,8 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class _Config(BaseSettings):  # Singleton
     LR_DATA_DIR: str = ''
 
-    PLOTS_TITLE: str = "Polyglotka Plots"
-    PLOTS_BACKGROUND_COLOR: str = "#171717"
+    PLOTS_TITLE: str = 'Polyglotka Plots'
+    PLOTS_BACKGROUND_COLOR: str = '#171717'
+    PLOTS_SERVER_URL: str = 'http://127.0.0.1:8050'
     PLOTS_SMOOTH: bool = True
     PLOTS_HIDE_ALL: bool = True
 
