@@ -1,3 +1,4 @@
+import sys
 from enum import StrEnum, auto
 from types import TracebackType
 from typing import Optional, Self, Type
@@ -7,7 +8,7 @@ from rich.progress import BarColumn
 from rich.progress import Progress as RichProgress
 from rich.progress import SpinnerColumn, TextColumn
 
-console = Console()  # Singleton
+_console = Console(file=sys.stderr, force_terminal=True)  # Singleton
 
 
 class ProgressType(StrEnum):
@@ -38,14 +39,14 @@ class Progress:
                     TextColumn(f'[{self.color}]{{task.description}} |'),
                     BarColumn(complete_style=self.color),
                     TextColumn(f'[{self.color}]| {{task.completed:,}} / {{task.total:,}} ' + self.postfix),
-                    console=console,
+                    console=_console,
                     transient=True,
                 )
             case ProgressType.TEXT:
                 self.rich_progress = RichProgress(
                     SpinnerColumn(style=self.color),
                     TextColumn(f'[{self.color}]{{task.description}}'),
-                    console=console,
+                    console=_console,
                     transient=True,
                 )
             case _:
@@ -61,6 +62,9 @@ class Progress:
             self.rich_progress.update(self.task, description=f'[{self.color}]{text}...')
 
     def __exit__(
-        self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
     ) -> None:
         self.rich_progress.__exit__(exc_type, exc_val, exc_tb)
