@@ -24,13 +24,12 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             main()
 
 
-def run() -> None:
+def main() -> None:
     help_page = f"""
         https://github.com/constkolesnyak/polyglotka/blob/main/README.md
 
-        Args:
-            command: Commands: {', '.join(Command)}.
-            config_upd: You can override environment variables using flags.
+        Commands: {', '.join(Command)}.
+        You can override environment variables using flags.
     """
     entrypoint.__doc__ = help_page
     entrypoint.__annotations__['command'] = str
@@ -39,4 +38,4 @@ def run() -> None:
 
 
 if __name__ == '__main__':
-    run()
+    main()

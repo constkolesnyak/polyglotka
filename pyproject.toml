@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{ include = "polyglotka", from = "src" }]
 
 [tool.poetry.scripts]
-polyglotka = 'polyglotka.cli:run'
+polyglotka = 'polyglotka.main:main'
 
 [tool.poetry.dependencies]
 python = "3.13.*"

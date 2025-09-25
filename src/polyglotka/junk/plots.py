@@ -71,7 +71,7 @@ class WordDicts:
             self.by_lang_stage[(word.language, word.learning_stage)].append(word)
 
 
-def smooth_xy_data(words: list[LRWord]) -> tuple[list[datetime], list[int]]:
+def create_points(words: list[LRWord]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
     start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
     hourly_points = [start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)]
@@ -85,7 +85,7 @@ def create_trace(
     learning_stage: str,
     words: list[LRWord],
 ) -> go.Scatter:
-    x_data, y_data = smooth_xy_data(words)
+    x_data, y_data = create_points(words)
     name = f'{language.upper()} - {learning_stage.capitalize()}'
 
     visible = True
