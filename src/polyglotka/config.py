@@ -3,7 +3,9 @@ from typing import Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class _Config(BaseSettings):
+class _Config(BaseSettings):  # Singleton
+    LR_DATA_DIR: str = ''
+
     PLOTS_TITLE: str = "Polyglotka Plots"
     PLOTS_BACKGROUND_COLOR: str = "#171717"
     PLOTS_SMOOTH: bool = True

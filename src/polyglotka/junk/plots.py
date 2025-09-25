@@ -15,8 +15,8 @@ import waitress
 from funcy import pluck_attr  # pyright: ignore
 
 from polyglotka.config import config
-from polyglotka.junk.read_lr_data import LearningStage
-from polyglotka.junk.read_lr_words import LRWord, read_lr_words
+from polyglotka.lr_importer.lr_items import LearningStage
+from polyglotka.lr_importer.lr_words import LRWord, import_lr_words
 
 ALL = 'ALL'  # all langs or all learning stages
 
@@ -118,7 +118,7 @@ def create_trace(
 
 
 def create_learning_analytics_figure() -> go.Figure:
-    wds = WordDicts(list(read_lr_words()))  # tdc pass
+    wds = WordDicts(list(import_lr_words()))  # tdc pass
     fig: go.Figure = go.Figure()
     languages = wds.by_lang.keys()
     stages = wds.by_stage.keys()

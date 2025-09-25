@@ -1,3 +1,5 @@
+// Source: https://www.languagereactor.com/help/export#json
+
 export type savedItem_EXPORT_t = savedWord_EXPORT_t | savedPhrase_EXPORT_t;
 
 
