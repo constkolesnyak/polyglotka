@@ -5,8 +5,9 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from polyglotka.common.config import config
+from polyglotka.common.config import ENV_PREFIX, config
 from polyglotka.common.console import Progress, ProgressType
+from polyglotka.common.exceptions import UserError
 
 # You also can print the first item straight from the json file:
 # jq '.[0] | del(.audio, .context.phrase.subtitleTokens, .context.phrase.thumb_next, .context.phrase.thumb_prev)' lln_json_items_2025-9-23_part-1_645391.json
@@ -285,12 +286,15 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
 def import_lr_items() -> Generator[SavedItem, None, None]:
     lr_data_dir = Path(config.LR_DATA_DIR)
 
+    if not config.LR_DATA_DIR:
+        raise UserError(f'The environment variable {ENV_PREFIX}LR_DATA_DIR is not set')
+
     if not lr_data_dir.exists():
-        raise FileNotFoundError(f'Directory not found: {lr_data_dir}')
+        raise UserError(f'Directory not found: {lr_data_dir}')
 
     json_files = list(lr_data_dir.glob('lln_json_items_*.json'))
     if not json_files:
-        raise FileNotFoundError(f'No JSON files found in directory: {lr_data_dir}')
+        raise UserError(f'JSON files exported from LR are not found in directory: {lr_data_dir}')
 
     with Progress(
         ProgressType.BAR,

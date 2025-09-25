@@ -50,13 +50,13 @@ def configure_figure_layout(fig: go.Figure) -> None:
             x=0.5,
         ),
         xaxis=dict(
-            title=dict(text='Date', font=dict(size=20, color='white'), standoff=20),
+            title=dict(text='Date', font=dict(size=20, color='white'), standoff=10),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
             tickfont=dict(size=16, color='white'),
         ),
         yaxis=dict(
-            title=dict(text='Word Count', font=dict(size=20, color='white'), standoff=25),
+            title=dict(text='Word Count', font=dict(size=20, color='white'), standoff=15),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
             tickfont=dict(size=16, color='white'),

@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+ENV_PREFIX: str = 'POLYGLOTKA_'
+
 
 class _Config(BaseSettings):  # Singleton
     LR_DATA_DIR: str = ''
@@ -13,10 +15,10 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_HIDE_ALL: bool = True
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_prefix="POLYGLOTKA_",
+        env_file='.env',
+        env_prefix=ENV_PREFIX,
         case_sensitive=True,
-        extra="allow",
+        extra='allow',
     )
 
     def override(self, config_upd: dict[str, Any]) -> None:
