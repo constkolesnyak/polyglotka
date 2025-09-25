@@ -32,7 +32,12 @@ class LRWord(BaseModel):
 
 
 def import_lr_words() -> set[LRWord]:
-    all_words: list[LRWord] = [LRWord(**item.model_dump()) for item in import_lr_items() if isinstance(item, SavedWord)]
+    all_words: list[LRWord] = [
+        LRWord(**item.model_dump())
+        for item in import_lr_items()
+        if isinstance(item, SavedWord)
+        and item.learning_stage in (LearningStage.KNOWN, LearningStage.LEARNING)
+    ]
 
     unique_words: set[LRWord] = set()
     for word in sorted(all_words, key=lambda w: w.date):
