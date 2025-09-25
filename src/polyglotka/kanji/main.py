@@ -1,9 +1,12 @@
 from collections import defaultdict
+from itertools import takewhile
 from typing import Any, Iterable
 
 import regex as re
 from pydantic import BaseModel
 
+from polyglotka.common.config import config
+from polyglotka.common.exceptions import UserError
 from polyglotka.lr_importer.lr_items import LearningStage
 from polyglotka.lr_importer.lr_words import LRWord, import_lr_words
 
@@ -35,15 +38,18 @@ def collect_kanji_with_words(words: Iterable[LRWord]) -> list[Kanji]:
     return list(kanji_dict.values())
 
 
+def sorted_desc_kanji(kanji_iterable: Iterable[Kanji]) -> list[Kanji]:
+    return sorted(kanji_iterable, key=lambda k: (-len(k.known_words), -len(k.learning_words), k.kanji))
+
+
 def print_tsv_row(*data: Any):
     print('\t'.join(map(str, data)))
 
 
-def print_tsv_kanji(kanji_list: list[Kanji]) -> None:
+def print_tsv_kanji(kanji_iterable: Iterable[Kanji]) -> None:
     print_tsv_row('Kanji', 'Known Words Count', 'Learning Words Count', 'Known Words', 'Learning Words')
 
-    sorted_kanji = sorted(kanji_list, key=lambda k: (-len(k.known_words), -len(k.learning_words)))
-    for kanji in sorted_kanji:
+    for kanji in sorted_desc_kanji(kanji_iterable):
         print_tsv_row(
             kanji.kanji,
             len(kanji.known_words),
@@ -53,5 +59,33 @@ def print_tsv_kanji(kanji_list: list[Kanji]) -> None:
         )
 
 
+def check_min_counts(min_counts: tuple[int, int] | None) -> None:
+    if min_counts is None:
+        return
+
+    try:
+        assert isinstance(min_counts, tuple)
+        assert len(min_counts) == 2
+        for mc in min_counts:
+            assert isinstance(mc, int)
+    except AssertionError:
+        raise UserError('Expected two integers separated by a comma. E.g. --anki 0,3')
+
+
+def create_anki_search_query(kanji_iterable: Iterable[Kanji], min_counts: tuple[int, int]):
+    top_kanji = takewhile(
+        lambda k: (len(k.known_words), len(k.learning_words), k.kanji) >= min_counts,
+        sorted_desc_kanji(kanji_iterable),
+    )
+    return config.ANKI_FILTERS + ' (' + ' OR '.join(f"{config.ANKI_FIELD}:{k.kanji}" for k in top_kanji) + ')'
+
+
 def main():
-    print_tsv_kanji(collect_kanji_with_words(import_lr_words()))
+    check_min_counts(config.ANKI)
+    kanji: list[Kanji] = collect_kanji_with_words(import_lr_words())
+
+    match config.ANKI:
+        case None:
+            print_tsv_kanji(kanji)
+        case _:
+            print(create_anki_search_query(kanji, config.ANKI))

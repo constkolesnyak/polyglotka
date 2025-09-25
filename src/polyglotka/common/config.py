@@ -16,6 +16,10 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_SMOOTH: bool = True
     PLOTS_HIDE_ALL: bool = True
 
+    ANKI: tuple[int, int] | None = None
+    ANKI_FILTERS: str = 'deck:漢字 is:suspended'
+    ANKI_FIELD: str = 'kanji'
+
     model_config = SettingsConfigDict(
         env_file='.env',
         env_prefix=ENV_PREFIX,
@@ -28,6 +32,8 @@ class _Config(BaseSettings):  # Singleton
         if extra_vars := set(config_upd.keys()) - set(self.model_dump().keys()):
             raise UserError(f'Invalid overriding vars: {", ".join(extra_vars)}')
         vars(self).update(config_upd)
+        # icecream.ic(config.model_dump())
+        # exit(0)
 
 
 config = _Config()
