@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import dash
 import waitress
 
-from polyglotka.config import config
+from polyglotka.common.config import config
 from polyglotka.lr_importer.lr_words import import_lr_words
 from polyglotka.plots.appearance import create_dash_app
 from polyglotka.plots.figure import create_figure

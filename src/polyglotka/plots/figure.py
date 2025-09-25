@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from funcy import pluck_attr  # pyright: ignore
 
-from polyglotka.config import config
+from polyglotka.common.config import config
 from polyglotka.lr_importer.lr_items import LearningStage
 from polyglotka.lr_importer.lr_words import LRWord
 from polyglotka.plots.appearance import configure_figure_layout, get_color

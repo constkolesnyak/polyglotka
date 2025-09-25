@@ -3,7 +3,7 @@ from typing import Any
 
 import fire  # type: ignore
 
-from polyglotka.config import config
+from polyglotka.common.config import config
 
 
 class Command(StrEnum):
