@@ -9,6 +9,7 @@ from typing import NoReturn
 from urllib.parse import urlparse
 
 import dash
+import pandas as pd
 import plotly.graph_objects as go
 import waitress
 from funcy import pluck_attr  # pyright: ignore
@@ -75,9 +76,17 @@ def create_points(words: list[LRWord]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
     start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
     hourly_points = [start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)]
-    all_x: list[datetime] = sorted(set(word_dates + hourly_points))
-    y_data: list[int] = [sum(1 for wd in word_dates if wd <= x) for x in all_x]
-    return all_x, y_data
+    x_data: list[datetime] = sorted(set(word_dates + hourly_points))
+    y_data: list[int] = [sum(1 for wd in word_dates if wd <= x) for x in x_data]
+
+    if config.PLOTS_SMOOTH:
+        series = pd.Series(y_data, index=pd.to_datetime(x_data)).sort_index()
+        rate = series.diff().fillna(0).resample('h').sum()  # type: ignore
+        y_smooth = rate.ewm(halflife=6, adjust=False).mean().cumsum()
+        y_smooth *= series.iloc[-1] / y_smooth.iloc[-1]
+        x_data, y_data = y_smooth.index, y_smooth.values
+
+    return x_data, y_data
 
 
 def create_trace(
@@ -88,11 +97,12 @@ def create_trace(
     x_data, y_data = create_points(words)
     name = f'{language.upper()} - {learning_stage.capitalize()}'
 
-    visible = True
     line_width = 3
+    visible = True
     if ALL in name.upper():
-        visible = 'legendonly'
         line_width = 4
+        if config.PLOTS_HIDE_ALL:
+            visible = 'legendonly'
 
     return go.Scatter(
         x=x_data,

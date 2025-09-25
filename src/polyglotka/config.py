@@ -1,13 +1,15 @@
 from typing import Any
 
-import pydantic_settings as pds
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class _Config(pds.BaseSettings):
+class _Config(BaseSettings):
     PLOTS_TITLE: str = "Polyglotka Plots"
     PLOTS_BACKGROUND_COLOR: str = "#171717"
+    PLOTS_SMOOTH: bool = True
+    PLOTS_HIDE_ALL: bool = True
 
-    model_config = pds.SettingsConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="POLYGLOTKA_",
         case_sensitive=True,
