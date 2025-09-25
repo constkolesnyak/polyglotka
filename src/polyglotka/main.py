@@ -7,6 +7,8 @@ from colorama import Fore, Style
 
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
+from polyglotka.kanji.main import main as kanji_main
+from polyglotka.plots.main import main as plots_main
 
 
 class Command(StrEnum):
@@ -16,17 +18,17 @@ class Command(StrEnum):
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
     if command not in list(Command):
-        raise UserError(f'Command "{command}" does not exist. Available commands: \n  - ' + '\n  - '.join(Command))
+        raise UserError(
+            f'Command "{command}" does not exist. Available commands: \n  - ' + '\n  - '.join(Command)
+        )
 
     config.override(config_upd)
 
     match command:
         case Command.PLOTS:
-            from polyglotka.plots.main import main as plots_main
-
             plots_main()
         case Command.KANJI:
-            ...  # tdc
+            kanji_main()
 
 
 def main() -> None:

@@ -24,6 +24,7 @@ icecream = "^2.1.8"
 rich = "^14.1.0"
 numpy = "^2.3.3"
 pandas = "^2.3.2"
+regex = "^2025.9.18"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -39,7 +40,7 @@ omit = ['tests/*', '__init__.py']
 exclude_also = ['raise NotImplementedError']
 
 [tool.black]
-line-length = 120
+line-length = 110
 skip-string-normalization = true
 
 [build-system]
