@@ -5,8 +5,8 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from polyglotka.common import create_progress
-from polyglotka.config import config
+from polyglotka.common.config import config
+from polyglotka.common.console import Progress, ProgressType
 
 # You also can print the first item straight from the json file:
 # jq '.[0] | del(.audio, .context.phrase.subtitleTokens, .context.phrase.thumb_next, .context.phrase.thumb_prev)' lln_json_items_2025-9-23_part-1_645391.json
@@ -292,9 +292,12 @@ def import_lr_items() -> Generator[SavedItem, None, None]:
     if not json_files:
         raise FileNotFoundError(f'No JSON files found in directory: {lr_data_dir}')
 
-    with create_progress('JSON files imported') as progress:
-        progress_task = progress.add_task('', total=len(json_files))
-
+    with Progress(
+        ProgressType.BAR,
+        'Importing LR data',
+        'files',
+        total_tasks=len(json_files),
+    ) as progress:
         for json_file in json_files:
             with open(json_file, 'r', encoding='utf-8') as f:
                 items: list[Any] = json.load(f)
@@ -304,4 +307,4 @@ def import_lr_items() -> Generator[SavedItem, None, None]:
                 assert saved_item
                 yield saved_item
 
-            progress.update(progress_task, advance=1)
+            progress.update(advance=1)

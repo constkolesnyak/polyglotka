@@ -9,28 +9,34 @@ import dash
 import waitress
 
 from polyglotka.common.config import config
+from polyglotka.common.console import Progress, ProgressType
 from polyglotka.lr_importer.lr_words import import_lr_words
 from polyglotka.plots.appearance import create_dash_app
 from polyglotka.plots.figure import create_figure
 
 
 def show_plots_and_die() -> None:
-    def _open_browser_and_die() -> NoReturn:
+    def _open_browser_and_die(progress: Progress) -> NoReturn:
         time.sleep(0.3)
         webbrowser.open(config.PLOTS_SERVER_URL)
+
+        progress.update('Exiting')
         time.sleep(3)
+        progress.__exit__(None, None, None)
         os._exit(0)
 
     words = import_lr_words()
+    with Progress(ProgressType.TEXT, 'Plotting') as progress:
+        figure = create_figure(words)
+        dash_app: dash.Dash = create_dash_app(figure)
 
-    dash_app: dash.Dash = create_dash_app(create_figure(words))
-
-    threading.Thread(target=_open_browser_and_die, daemon=True).start()
-    waitress.serve(
-        app=dash_app.server,
-        host=urlparse(config.PLOTS_SERVER_URL).hostname,
-        port=urlparse(config.PLOTS_SERVER_URL).port,
-    )
+        progress.update('Opening browser')
+        threading.Thread(target=_open_browser_and_die, kwargs=dict(progress=progress), daemon=True).start()
+        waitress.serve(
+            app=dash_app.server,
+            host=urlparse(config.PLOTS_SERVER_URL).hostname,
+            port=urlparse(config.PLOTS_SERVER_URL).port,
+        )
 
 
 def main() -> None:
