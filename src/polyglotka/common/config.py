@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from polyglotka.common.exceptions import UserError
+
 ENV_PREFIX: str = 'POLYGLOTKA_'
 
 
@@ -24,7 +26,7 @@ class _Config(BaseSettings):  # Singleton
     def override(self, config_upd: dict[str, Any]) -> None:
         config_upd = {k.upper(): v for k, v in config_upd.items()}
         if extra_vars := set(config_upd.keys()) - set(self.model_dump().keys()):
-            raise ValueError(f'Invalid vars: {", ".join(extra_vars)}')
+            raise UserError(f'Invalid overriding vars: {", ".join(extra_vars)}')
         vars(self).update(config_upd)
 
 

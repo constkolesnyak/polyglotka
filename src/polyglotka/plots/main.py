@@ -2,11 +2,15 @@ import os
 import threading
 import time
 import webbrowser
+import logging
 from typing import NoReturn
 from urllib.parse import urlparse
 
 import dash
 import waitress
+
+# Silence the waitress queue depth warnings
+logging.getLogger('waitress.queue').setLevel(logging.ERROR)
 
 from polyglotka.common.config import config
 from polyglotka.common.console import Progress, ProgressType

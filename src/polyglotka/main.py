@@ -11,20 +11,22 @@ from polyglotka.common.exceptions import UserError
 
 class Command(StrEnum):
     PLOTS = auto()
+    KANJI = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
     if command not in list(Command):
-        raise ValueError(f'Command "{command}" is invalid\n  Use one of these: ' + ', '.join(Command))
+        raise UserError(f'Command "{command}" does not exist. Available commands: \n  - ' + '\n  - '.join(Command))
 
     config.override(config_upd)
 
     match command:
         case Command.PLOTS:
-            # tdc
-            from polyglotka.plots.main import main
+            from polyglotka.plots.main import main as plots_main
 
-            main()
+            plots_main()
+        case Command.KANJI:
+            ...  # tdc
 
 
 def main() -> None:
