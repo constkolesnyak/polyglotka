@@ -44,7 +44,7 @@ def create_points(words: Iterable[LRWord]) -> tuple[list[datetime], list[int]]:
         rate = series.diff().fillna(0).resample('h').sum()  # type: ignore
         y_smooth = rate.ewm(halflife=6, adjust=False).mean().cumsum()
         y_smooth *= series.iloc[-1] / y_smooth.iloc[-1]
-        x_data, y_data = y_smooth.index, y_smooth.values
+        x_data, y_data = y_smooth.index, y_smooth.values.round().astype(int).tolist()
 
     return x_data, y_data
 
