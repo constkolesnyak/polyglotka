@@ -282,9 +282,6 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
 
 
 def import_lr_items() -> Generator[SavedItem, None, None]:
-    if config.LR_DATA_DIR is None:
-        raise UserError.from_unset_env_var('LR_DATA_DIR')
-
     lr_data_dir = Path(config.LR_DATA_DIR)
     if not lr_data_dir.exists():
         raise UserError(f'Directory not found: {lr_data_dir}')

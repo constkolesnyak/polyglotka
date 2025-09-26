@@ -1,5 +1,6 @@
 from typing import Any
 
+from path import Path
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -10,7 +11,7 @@ class _Config(BaseSettings):  # Singleton
     ENV_PREFIX: str = 'POLYGLOTKA_'
     model_config = SettingsConfigDict(env_file='.env', env_prefix=ENV_PREFIX, case_sensitive=True)
 
-    LR_DATA_DIR: str | None = None
+    LR_DATA_DIR: str = Path.home() / 'Downloads'
     LR_DATA_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
 
     PLOTS_TITLE: str = 'Polyglotka Plots'

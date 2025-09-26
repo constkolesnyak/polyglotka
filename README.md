@@ -33,7 +33,7 @@ Set environment variables with the prefix `POLYGLOTKA_` or just pass flags (they
 
 | Name                       | Type      | Default                 | Description                          |
 | -------------------------- | --------- | ----------------------- | ------------------------------------ |
-| LR_DATA_DIR                | str       |                         | Path to the dir w/ your LR exports   |
+| LR_DATA_DIR                | str       | $HOME/Downloads         | Path to the dir w/ your LR exports   |
 | LR_DATA_FILES_GLOB_PATTERN | str       | lln_json_items\_\*.json | Glob your json exports               |
 | PLOTS_TITLE                | str       | Polyglotka Plots        | The title of the plots               |
 | PLOTS_BACKGROUND_COLOR     | str       | \#171717                | Pretty dark by default               |
