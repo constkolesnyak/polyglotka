@@ -4,7 +4,7 @@ Visualize [Language Reactor](https://languagereactor.com) data through interacti
 
 ## Name
 
-_Polyglotka_ is a [Slovak word](https://www.google.com/search?q=%22polyglotka%22+site%3A*.sk&sca_esv=3f080a3bfc790179&sxsrf=AE3TifO5N36YjT4dexxsM563QJlsOxL_IA%3A1758898552313&ei=eKnWaNfgEuWuwPAPqdOBmQg&ved=0ahUKEwjX_J_b1_aPAxVlFxAIHalpIIMQ4dUDCBA&uact=5&oq=%22polyglotka%22+site%3A*.sk&gs_lp=Egxnd3Mtd2l6LXNlcnAiFiJwb2x5Z2xvdGthIiBzaXRlOiouc2tIv3xQwQZYrXZwBHgAkAEAmAHwAaAB8AqqAQUwLjUuM7gBA8gBAPgBAfgBApgCAKACAJgDAIgGAZIHAKAH6AKyBwC4BwDCBwDIBwA&sclient=gws-wiz-serp)
+_Polyglotka_ is a [Slovak word](https://www.google.com/search?q=%22polyglotka%22+site%3A*.sk)
 that means _female polyglot_.
 For example, [Lýdia Machová](https://www.wikiwand.com/sk/articles/L%C3%BDdia_Machov%C3%A1)
 is a famous polyglotka.
