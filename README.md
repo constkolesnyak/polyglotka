@@ -31,16 +31,16 @@ Set environment variables with the prefix `POLYGLOTKA_` or just pass flags (they
 
 ### Variables
 
-| Name                       | Type    | Default                 | Description                          |
-| -------------------------- | ------- | ----------------------- | ------------------------------------ |
-| LR_DATA_DIR                | str     |                         | Path to the dir w/ your LR exports   |
-| LR_DATA_FILES_GLOB_PATTERN | str     | lln_json_items\_\*.json | Glob your json exports               |
-| PLOTS_TITLE                | str     | Polyglotka Plots        | The title of the plots               |
-| PLOTS_BACKGROUND_COLOR     | str     | \#171717                | Pretty dark by default               |
-| PLOTS_SMOOTH               | bool    | True                    | Less accurate but less ugly          |
-| ANKI_MIN_COUNTS            | int,int |                         | Min number of (known,learning) words |
-| ANKI_FILTERS               | str     | deck:漢字 is:suspended  | Anki search query stuff              |
-| ANKI_KANJI_FIELD           | str     | kanji                   | Anki search query stuff              |
+| Name                       | Type      | Default                 | Description                          |
+| -------------------------- | --------- | ----------------------- | ------------------------------------ |
+| LR_DATA_DIR                | str       |                         | Path to the dir w/ your LR exports   |
+| LR_DATA_FILES_GLOB_PATTERN | str       | lln_json_items\_\*.json | Glob your json exports               |
+| PLOTS_TITLE                | str       | Polyglotka Plots        | The title of the plots               |
+| PLOTS_BACKGROUND_COLOR     | str       | \#171717                | Pretty dark by default               |
+| PLOTS_SMOOTH               | bool      | True                    | Less accurate but less ugly          |
+| ANKI_MIN_COUNTS            | (int,int) | (0,0)                   | Min number of (known,learning) words |
+| ANKI_FILTERS               | str       | deck:漢字 is:suspended  | Anki search query stuff              |
+| ANKI_KANJI_FIELD           | str       | kanji                   | Anki search query stuff              |
 
 ## Run
 
@@ -75,4 +75,8 @@ Output:
 
     deck:漢字 is:suspended (kanji:大 OR kanji:日 OR kanji:話 OR kanji:生 OR kanji:本)
 
-Paste it into Anki.
+Pipe it directly into the clipboard if you are in a hurry:
+
+    polyglotka anki --anki-min-counts 7,9 | pbcopy
+
+Then paste the search query into Anki.
