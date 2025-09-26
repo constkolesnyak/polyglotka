@@ -26,7 +26,7 @@ def test_entrypoint_routes_to_plots(monkeypatch) -> None:
     monkeypatch.setattr("polyglotka.main.plots_main", fake_plots)
     monkeypatch.setattr("polyglotka.main.config", dummy_config)
 
-    entrypoint(Command.PLOTS, lr_data_dir="/tmp/lingq")
+    entrypoint(Command.PLOTS, lr_data_dir="/tmp/language-reactor")
 
     assert called["plots"] is True
 
