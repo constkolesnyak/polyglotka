@@ -68,7 +68,7 @@ def create_tsv_kanji(kanji_sorted_desc: Iterable[Kanji]) -> str:
 
 def create_anki_search_query(kanji_sorted_desc: Iterable[Kanji]) -> str:
     top_kanji = takewhile(
-        lambda k: (len(k.known_words), len(k.learning_words)) >= config.ANKI_MIN_COUNTS,  # pyright: ignore
+        lambda k: (len(k.known_words), len(k.learning_words)) >= config.anki_min_counts,
         kanji_sorted_desc,
     )
     kanji_or_kanji = ' OR '.join(f'{config.ANKI_KANJI_FIELD}:{k.char}' for k in top_kanji)
@@ -77,8 +77,5 @@ def create_anki_search_query(kanji_sorted_desc: Iterable[Kanji]) -> str:
 
 
 def main(anki: bool = False) -> None:
-    if anki and config.ANKI_MIN_COUNTS is None:
-        raise UserError.from_unset_env_var('ANKI_MIN_COUNTS')
-
     func: Callable[..., str] = create_anki_search_query if anki else create_tsv_kanji
     print(func(sorted_desc_kanji(collect_kanji_with_words(import_lr_words()))))

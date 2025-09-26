@@ -19,14 +19,17 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_SMOOTH: bool = True
     PLOTS_HIDE_ALL: bool = True
 
-    ANKI_MIN_COUNTS: tuple[int, int] | None = None
+    ANKI_MIN_COUNTS: tuple[int, int] | str = (0, 0)
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'
     ANKI_KANJI_FIELD: str = 'kanji'
 
+    @property
+    def anki_min_counts(self) -> tuple[int, int]:
+        assert isinstance(self.ANKI_MIN_COUNTS, tuple)
+        return self.ANKI_MIN_COUNTS
+
     @staticmethod
-    def validate_anki_min_counts(min_counts_arg: str | tuple[Any, ...] | None) -> tuple[int, int] | None:
-        if min_counts_arg is None:
-            return min_counts_arg
+    def validate_anki_min_counts(min_counts_arg: str | tuple[Any, ...]) -> tuple[int, int]:
         try:
             if isinstance(min_counts_arg, tuple):
                 min_counts_arg = ','.join(map(str, min_counts_arg))
@@ -40,7 +43,7 @@ class _Config(BaseSettings):  # Singleton
 
     @field_validator('ANKI_MIN_COUNTS', mode='before')
     @classmethod
-    def _(cls, value: Any) -> tuple[int, int] | None:
+    def _(cls, value: Any) -> tuple[int, int]:
         return cls.validate_anki_min_counts(value)
 
     def override(self, config_upd: dict[str, Any]) -> None:

@@ -24,7 +24,6 @@ def test_override_rejects_unknown_keys() -> None:
 @pytest.mark.parametrize(
     "raw_value, expected",
     [
-        (None, None),
         ("1,2", (1, 2)),
         (("3", "4"), (3, 4)),
     ],
