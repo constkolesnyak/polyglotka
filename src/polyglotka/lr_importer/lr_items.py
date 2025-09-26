@@ -5,7 +5,7 @@ from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-from polyglotka.common.config import ENV_PREFIX, config
+from polyglotka.common.config import config
 from polyglotka.common.console import Progress, ProgressType
 from polyglotka.common.exceptions import UserError
 
@@ -287,7 +287,7 @@ def import_lr_items() -> Generator[SavedItem, None, None]:
     lr_data_dir = Path(config.LR_DATA_DIR)
 
     if not config.LR_DATA_DIR:
-        raise UserError(f'The environment variable {ENV_PREFIX}LR_DATA_DIR is not set')
+        raise UserError.from_unset_env_var('LR_DATA_DIR')
 
     if not lr_data_dir.exists():
         raise UserError(f'Directory not found: {lr_data_dir}')
