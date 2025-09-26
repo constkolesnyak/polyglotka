@@ -11,9 +11,9 @@ is a famous polyglotka.
 
 ## Install
 
-Use [pipx](https://pypa.github.io/pipx):
+Use [pipx](https://pipx.pypa.io):
 
-    pipx install ...
+    pipx install git+https://github.com/constkolesnyak/polyglotka
 
 ## Export Language Reactor Data
 
