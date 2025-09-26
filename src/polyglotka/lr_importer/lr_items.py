@@ -9,7 +9,7 @@ from polyglotka.common.config import config
 from polyglotka.common.console import Progress, ProgressType
 from polyglotka.common.exceptions import UserError
 
-# You also can print the first item straight from the json file:
+# You can also print the first item straight from the json file to see the schema:
 # jq '.[0] | del(.audio, .context.phrase.subtitleTokens, .context.phrase.thumb_next, .context.phrase.thumb_prev)' lln_json_items_2025-9-23_part-1_645391.json
 
 
@@ -88,7 +88,6 @@ class YouTubeTmInfo(BaseModel):
     langCode_YT: Optional[str] = None
     isTranslatable: Optional[bool] = None
     isTranslatedTrack: Optional[bool] = None
-    # Handle any additional fields that may be present
     id: Optional[str] = None
     audioDownloadableId: Optional[str] = None
 
@@ -96,8 +95,8 @@ class YouTubeTmInfo(BaseModel):
 class YouTubeReference(BaseModel):
     """Reference to YouTube video source."""
 
-    source: Optional[str] = None  # Accept any string instead of literal
-    tm: Optional[YouTubeTmInfo] = None  # Make optional
+    source: Optional[str] = None
+    tm: Optional[YouTubeTmInfo] = None
     savedFrom: Optional[str] = None
     diocoDocId: Optional[str] = None
     diocoDocName: Optional[str] = None
@@ -116,7 +115,7 @@ class NetflixTmInfo(BaseModel):
 
     name: Optional[str] = None
     type: Optional[str] = None
-    hydrated: Optional[Union[bool, str]] = None  # Can be bool or string
+    hydrated: Optional[Union[bool, str]] = None
     audioType: Optional[str] = None
     langCode_G: Optional[str] = None
     langCode_N: Optional[str] = None
@@ -124,16 +123,15 @@ class NetflixTmInfo(BaseModel):
     new_track_id: Optional[str] = None
     audioIsNative: Optional[bool] = None
     audioDownloadableId: Optional[str] = None
-    # Handle any additional fields that may be present
     id: Optional[str] = None
-    size: Optional[Union[int, str]] = None  # Can be int or string
+    size: Optional[Union[int, str]] = None
 
 
 class NetflixReference(BaseModel):
     """Reference to Netflix video source."""
 
-    source: Optional[str] = None  # Accept any string instead of literal
-    tm: Optional[NetflixTmInfo] = None  # Make optional
+    source: Optional[str] = None
+    tm: Optional[NetflixTmInfo] = None
     packageId: Optional[str] = None
     title_arr: Optional[List[str]] = None
     diocoDocId: Optional[str] = None
@@ -149,31 +147,31 @@ class NetflixReference(BaseModel):
 class TextReference(BaseModel):
     """Reference to text source."""
 
-    source: Optional[str] = None  # Accept any string instead of literal
-    movie_id: Optional[str] = Field(default=None, alias='movieId')  # null if unsaved text
+    source: Optional[str] = None
+    movie_id: Optional[str] = Field(default=None, alias='movieId')
     title: Optional[str] = None
-    tm: Optional[Dict[str, Any]] = None  # More flexible tm field
+    tm: Optional[Dict[str, Any]] = None
     url: Optional[str] = None
 
 
 class VideoFileReference(BaseModel):
     """Reference to video file source."""
 
-    source: Optional[str] = None  # Accept any string instead of literal
+    source: Optional[str] = None
     movie_id: Optional[str] = Field(default=None, alias='movieId')  # subs md5, used for querying
     title: Optional[str] = None  # file name, used for querying
     subtitle_index: Optional[int] = Field(default=None, alias='subtitleIndex')
     num_subs: Optional[int] = Field(default=None, alias='numSubs')
     start_time_ms: Optional[int] = Field(default=None, alias='startTime_ms')
     end_time_ms: Optional[int] = Field(default=None, alias='endTime_ms')
-    tm: Optional[Dict[str, Any]] = None  # More flexible tm field
+    tm: Optional[Dict[str, Any]] = None
 
 
 class DictionaryReference(BaseModel):
     """Reference to dictionary source."""
 
-    source: Optional[str] = None  # Accept any string instead of literal
-    tm: Optional[Dict[str, Any]] = None  # More flexible tm field
+    source: Optional[str] = None
+    tm: Optional[Dict[str, Any]] = None
     title: Optional[str] = None
     movie_id: Optional[str] = Field(default=None, alias='movieId')
 
@@ -276,7 +274,7 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
             print(f"Warning: Unknown item type '{item_type}', skipping item")
             return None
     except Exception as e:
-        print(f"Warning: Failed to parse item as SavedItem: {e}")
+        print(f'Warning: Failed to parse item as SavedItem: {e}')
         print(
             f"Item data keys: {list(item_data.keys()) if isinstance(item_data, dict) else 'Not a dict'}"  # pyright: ignore
         )
@@ -284,22 +282,23 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
 
 
 def import_lr_items() -> Generator[SavedItem, None, None]:
-    lr_data_dir = Path(config.LR_DATA_DIR)
-
-    if not config.LR_DATA_DIR:
+    if config.LR_DATA_DIR is None:
         raise UserError.from_unset_env_var('LR_DATA_DIR')
 
+    lr_data_dir = Path(config.LR_DATA_DIR)
     if not lr_data_dir.exists():
         raise UserError(f'Directory not found: {lr_data_dir}')
 
-    json_files = list(lr_data_dir.glob('lln_json_items_*.json'))
+    json_files = list(lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN))
     if not json_files:
-        raise UserError(f'JSON files exported from LR are not found in directory: {lr_data_dir}')
+        raise UserError(
+            f'LR files ({config.LR_DATA_FILES_GLOB_PATTERN}) are not found in directory: {lr_data_dir}'
+        )
 
     with Progress(
-        ProgressType.BAR,
-        'Importing LR data',
-        'files',
+        progress_type=ProgressType.BAR,
+        text='Importing LR data',
+        postfix='files',
         total_tasks=len(json_files),
     ) as progress:
         for json_file in json_files:

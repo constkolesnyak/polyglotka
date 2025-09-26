@@ -1,9 +1,11 @@
 from typing import Self
 
+from colorama import Fore, Style
+
 
 class UserError(Exception):
     def __init__(self, msg: str) -> None:
-        super().__init__(f'ERROR: {msg}')
+        super().__init__(f'{Fore.RED}ERROR: {msg}{Style.RESET_ALL}')
 
     @classmethod
     def from_unset_env_var(cls, env_var_name: str) -> Self:

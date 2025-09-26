@@ -3,37 +3,39 @@ from datetime import datetime, timedelta
 from typing import Iterable
 
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # pyright: ignore
 from funcy import pluck_attr  # pyright: ignore
 
 from polyglotka.common.config import config
 from polyglotka.lr_importer.lr_items import LearningStage
 from polyglotka.lr_importer.lr_words import LRWord
-from polyglotka.plots.appearance import configure_figure_layout, get_color
+from polyglotka.plots.appearance import configure_figure, get_color
 
 ALL = 'ALL'  # all langs or all learning stages
 
 
 class WordDicts:
     def __init__(self, words: Iterable[LRWord]) -> None:
-        self.all_words = words
-        self.by_lang: defaultdict[str, list[LRWord]] = defaultdict(list)
-        self.by_stage: defaultdict[LearningStage, list[LRWord]] = defaultdict(list)
+        self.all_words = set(words)
+        self.by_lang: defaultdict[str, set[LRWord]] = defaultdict(set)
+        self.by_stage: defaultdict[LearningStage, set[LRWord]] = defaultdict(set)
         self.by_lang_stage: defaultdict[
             tuple[str, LearningStage],
-            list[LRWord],
-        ] = defaultdict(list)
+            set[LRWord],
+        ] = defaultdict(set)
 
         for word in self.all_words:
-            self.by_lang[word.language].append(word)
-            self.by_stage[word.learning_stage].append(word)
-            self.by_lang_stage[(word.language, word.learning_stage)].append(word)
+            self.by_lang[word.language].add(word)
+            self.by_stage[word.learning_stage].add(word)
+            self.by_lang_stage[(word.language, word.learning_stage)].add(word)
 
 
 def create_points(words: Iterable[LRWord]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
     start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
-    hourly_points = [start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)]
+    hourly_points = [
+        start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)
+    ]
     x_data: list[datetime] = sorted(set(word_dates + hourly_points))
     y_data: list[int] = [sum(1 for wd in word_dates if wd <= x) for x in x_data]
 
@@ -119,5 +121,5 @@ def create_figure(words: Iterable[LRWord]) -> go.Figure:
     for trace in sorted(traces, key=lambda t: t.name):  # pyright: ignore
         fig.add_trace(trace)  # pyright: ignore
 
-    configure_figure_layout(fig)
+    configure_figure(fig)
     return fig

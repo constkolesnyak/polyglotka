@@ -42,7 +42,7 @@ def get_color(lang: str, stage: str) -> str:
             raise ValueError('Bad stage')
 
 
-def configure_figure_layout(fig: go.Figure) -> None:
+def configure_figure(fig: go.Figure) -> None:
     fig.update_layout(  # pyright: ignore
         title=dict(
             text=config.PLOTS_TITLE,

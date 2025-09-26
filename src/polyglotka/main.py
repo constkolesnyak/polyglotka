@@ -3,7 +3,6 @@ from enum import StrEnum, auto
 from typing import Any
 
 import fire  # type: ignore
-from colorama import Fore, Style
 
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
@@ -34,19 +33,19 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
 
 
 def main() -> None:
-    help_page = f"""
+    help_page = f'''
         https://github.com/constkolesnyak/polyglotka/blob/main/README.md
 
         Commands: {', '.join(Command)}.
         You can override environment variables using flags.
-    """
+    '''
     entrypoint.__doc__ = help_page
     entrypoint.__annotations__['command'] = str
 
     try:
         fire.Fire(entrypoint)  # type: ignore
     except UserError as exc:
-        print(f'{Fore.RED}{exc}{Style.RESET_ALL}', file=sys.stderr)
+        print(exc, file=sys.stderr)
 
 
 if __name__ == '__main__':

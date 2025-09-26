@@ -1,2 +1,1 @@
 # polyglotka
-#todo description
