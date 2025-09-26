@@ -1,6 +1,6 @@
 from collections import defaultdict
 from itertools import takewhile
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 import regex as re
 from pydantic import BaseModel
@@ -42,15 +42,17 @@ def sorted_desc_kanji(kanji_iterable: Iterable[Kanji]) -> list[Kanji]:
     return sorted(kanji_iterable, key=lambda k: (-len(k.known_words), -len(k.learning_words), k.kanji))
 
 
-def print_tsv_row(*data: Any):
-    print('\t'.join(map(str, data)))
+def create_tsv_row(*data: Any) -> str:
+    return '\t'.join(map(str, data))
 
 
-def print_tsv_kanji(kanji_iterable: Iterable[Kanji]) -> None:
-    print_tsv_row('Kanji', 'Known Words Count', 'Learning Words Count', 'Known Words', 'Learning Words')
+def create_tsv_kanji(kanji_iterable: Iterable[Kanji]) -> str:
+    tsv_kanji: list[str] = [
+        create_tsv_row('Kanji', 'Known Words Count', 'Learning Words Count', 'Known Words', 'Learning Words')
+    ]
 
     for kanji in sorted_desc_kanji(kanji_iterable):
-        print_tsv_row(
+        tsv_kanji += create_tsv_row(
             kanji.kanji,
             len(kanji.known_words),
             len(kanji.learning_words),
@@ -58,34 +60,20 @@ def print_tsv_kanji(kanji_iterable: Iterable[Kanji]) -> None:
             '、'.join(kanji.learning_words),
         )
 
-
-def check_min_counts(min_counts: tuple[int, int] | None) -> None:
-    if min_counts is None:
-        return
-
-    try:
-        assert isinstance(min_counts, tuple)
-        assert len(min_counts) == 2
-        for mc in min_counts:
-            assert isinstance(mc, int)
-    except AssertionError:
-        raise UserError('Expected two integers separated by a comma. E.g. --anki 0,3')
+    return '\n'.join(tsv_kanji)
 
 
-def create_anki_search_query(kanji_iterable: Iterable[Kanji], min_counts: tuple[int, int]):
+def create_anki_search_query(kanji_iterable: Iterable[Kanji]) -> str:
     top_kanji = takewhile(
-        lambda k: (len(k.known_words), len(k.learning_words), k.kanji) >= min_counts,
+        lambda k: (len(k.known_words), len(k.learning_words)) >= config.ANKI_MIN_COUNTS,  # pyright: ignore
         sorted_desc_kanji(kanji_iterable),
     )
     return config.ANKI_FILTERS + ' (' + ' OR '.join(f"{config.ANKI_FIELD}:{k.kanji}" for k in top_kanji) + ')'
 
 
-def main():
-    check_min_counts(config.ANKI)
-    kanji: list[Kanji] = collect_kanji_with_words(import_lr_words())
+def main(anki: bool = False) -> None:
+    if anki and config.ANKI_MIN_COUNTS is None:
+        raise UserError.from_unset_env_var('ANKI_MIN_COUNTS')
 
-    match config.ANKI:
-        case None:
-            print_tsv_kanji(kanji)
-        case _:
-            print(create_anki_search_query(kanji, config.ANKI))
+    func: Callable[..., str] = create_anki_search_query if anki else create_tsv_kanji
+    print(func(collect_kanji_with_words(import_lr_words())))

@@ -14,6 +14,7 @@ from polyglotka.plots.main import main as plots_main
 class Command(StrEnum):
     PLOTS = auto()
     KANJI = auto()
+    ANKI = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -21,7 +22,6 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
         raise UserError(
             f'Command "{command}" does not exist. Available commands: \n  - ' + '\n  - '.join(Command)
         )
-
     config.override(config_upd)
 
     match command:
@@ -29,6 +29,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             plots_main()
         case Command.KANJI:
             kanji_main()
+        case Command.ANKI:
+            kanji_main(anki=True)
 
 
 def main() -> None:
