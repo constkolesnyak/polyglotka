@@ -50,7 +50,7 @@ Interactive plots will open in your browser.
 
 Zoom in, zoom out, click on the legend to show/hide graphs, download a picture, have fun.
 
-<img src='media/plots.png' width='400'>
+<img src='media/plots.png' width='700'>
 
 ### `polyglotka kanji`
 
@@ -61,7 +61,7 @@ to open VS Code with [Rainbow CSV](https://marketplace.visualstudio.com/items?it
 
 You will see kanji sorted by frequency.
 
-<img src='media/kanji.png' width='400'>
+<img src='media/kanji.png' width='700'>
 
 ### `polyglotka anki`
 
