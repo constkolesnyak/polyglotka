@@ -1,6 +1,6 @@
 # Polyglotka
 
-Visualize [Language Reactor](https://languagereactor.com) data through interactive plots and kanji tables to track your language acquisition progress.
+Visualize [Language Reactor](https://languagereactor.com) data with interactive plots and kanji tables to track your language acquisition progress.
 
 ## Name
 
@@ -17,57 +17,59 @@ Use [pipx](https://pipx.pypa.io):
 
 ## Export Language Reactor Data
 
-On the Language Reactor website open your [saved items](https://www.languagereactor.com/saved-items),
-click _Export_, _JSON_, All-All-Any-Any, and _Export_ again.
+On the Language Reactor website, open your [saved items](https://www.languagereactor.com/saved-items),
+click _Export_, choose _JSON_, _All-All-Any-Any_, and click _Export_ again.
 
 <img src='media/export_json_window.png' width='400'>
 
 ## Configure
 
-Set environment variables with the prefix `POLYGLOTKA_` or just pass flags (they take priority).
+Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
-    # The title's gonna be "Flag title"
+    # The title's gonna be "Flag title" (flags take priority over env vars)
     POLYGLOTKA_PLOTS_TITLE='Env title' polyglotka plots --plots-title 'Flag title'
 
 ### Variables
 
-| Name                       | Type      | Default                 | Description                          |
-| -------------------------- | --------- | ----------------------- | ------------------------------------ |
-| LR_DATA_DIR                | str       | $HOME/Downloads         | Path to the dir w/ your LR exports   |
-| LR_DATA_FILES_GLOB_PATTERN | str       | lln_json_items\_\*.json | Glob your json exports               |
-| PLOTS_TITLE                | str       | Polyglotka Plots        | The title of the plots               |
-| PLOTS_BACKGROUND_COLOR     | str       | \#171717                | Pretty dark by default               |
-| PLOTS_SMOOTH               | bool      | True                    | Less accurate but less ugly          |
-| ANKI_MIN_COUNTS            | (int,int) | (0,0)                   | Min number of (known,learning) words |
-| ANKI_FILTERS               | str       | deck:漢字 is:suspended  | Anki search query stuff              |
-| ANKI_KANJI_FIELD           | str       | kanji                   | Anki search query stuff              |
+| Name                       | Type    | Default                 | Description                           |
+| -------------------------- | ------- | ----------------------- | ------------------------------------- |
+| LR_DATA_DIR                | str     | $HOME/Downloads         | Directory with LR exports             |
+| LR_DATA_FILES_GLOB_PATTERN | str     | lln_json_items\_\*.json | Glob for LR exports                   |
+| PLOTS_TITLE                | str     | Polyglotka Plots        | Title of the plots                    |
+| PLOTS_BACKGROUND_COLOR     | str     | \#171717                | Background color (dark by default)    |
+| PLOTS_SERVER_URL           | str     | http://127.0.0.1:8050   | URL the plots server binds to         |
+| PLOTS_SMOOTH               | bool    | True                    | Smoothing for cleaner visuals         |
+| PLOTS_HIDE_AGGR            | bool    | True                    | Hide aggregate plots until toggled    |
+| ANKI_MIN_COUNTS            | int,int | 0,0                     | Min counts for (known,learning) words |
+| ANKI_FILTERS               | str     | deck:漢字 is:suspended  | Anki search query filters             |
+| ANKI_KANJI_FIELD           | str     | kanji                   | Anki field name containing kanji      |
 
 ## Run
 
 ### `polyglotka plots`
 
-Interactive plots will open in your browser.
+Interactive plots open in your browser.
 
-Zoom in, zoom out, click on the legend to show/hide graphs, download a picture, have fun.
+Zoom in, zoom out, toggle plots, download a picture, push every button in the corner, have fun.
 
 <img src='media/plots.png' width='700'>
 
 ### `polyglotka kanji`
 
-Better pipe the output into [this function](https://github.com/constkolesnyak/dotfiles/blob/3b225ee11388b1c6074caee54ba37e9bb5dc87d2/zsh/.functions.zsh#L1)
-to open VS Code with [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv):
+Pipe the TSV output into [this function](https://github.com/constkolesnyak/dotfiles/blob/3b225ee11388b1c6074caee54ba37e9bb5dc87d2/zsh/.functions.zsh#L1)
+from my dotfiles to open VS Code with [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv):
 
     polyglotka kanji | codetemp tsv
 
-You will see kanji sorted by frequency.
+The table shows kanji ordered by the number of known words, then learning words.
 
 <img src='media/kanji.png' width='700'>
 
 ### `polyglotka anki`
 
-Get the search query for the most frequent kanji. `ANKI_MIN_COUNTS` will cut off the less frequent ones.
+Generate the search query for kanji with the highest counts of known and learning words. `ANKI_MIN_COUNTS` trims the less frequent ones.
 
-If you want to get kanji that are used in at least 7 _known_ words and 9 _learning_ words, run this:
+To get kanji that appear in at least 7 known words and 9 learning words, run:
 
     polyglotka anki --anki-min-counts 7,9
 
@@ -75,8 +77,13 @@ Output:
 
     deck:漢字 is:suspended (kanji:大 OR kanji:日 OR kanji:話 OR kanji:生 OR kanji:本)
 
-Pipe it directly into the clipboard if you are in a hurry:
+On macOS, pipe the output directly into the clipboard if you are in a hurry:
 
     polyglotka anki --anki-min-counts 7,9 | pbcopy
 
 Then paste the search query into Anki.
+
+## P.S.
+
+Go [support](https://www.languagereactor.com/pro-mode)
+LR devs.

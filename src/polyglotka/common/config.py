@@ -18,7 +18,7 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_BACKGROUND_COLOR: str = '#171717'
     PLOTS_SERVER_URL: str = 'http://127.0.0.1:8050'
     PLOTS_SMOOTH: bool = True
-    PLOTS_HIDE_ALL: bool = True
+    PLOTS_HIDE_AGGR: bool = True
 
     ANKI_MIN_COUNTS: tuple[int, int] | str = (0, 0)
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'

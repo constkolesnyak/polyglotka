@@ -61,7 +61,7 @@ def create_trace(
     visible = True
     if ALL in name.upper():
         line_width = 4
-        if config.PLOTS_HIDE_ALL:
+        if config.PLOTS_HIDE_AGGR:
             visible = 'legendonly'
 
     return go.Scatter(
