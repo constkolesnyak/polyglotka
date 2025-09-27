@@ -73,7 +73,11 @@ def create_anki_search_query(kanji_sorted_desc: Iterable[Kanji]) -> str:
     )
     kanji_or_kanji = ' OR '.join(f'{config.ANKI_KANJI_FIELD}:{k.char}' for k in top_kanji)
 
-    return f'{config.ANKI_FILTERS} ({kanji_or_kanji})'
+    return (
+        f'{config.ANKI_FILTERS} ({kanji_or_kanji})'
+        if kanji_or_kanji
+        else 'Kanji not found. Try lowering ANKI_MIN_COUNTS'
+    )
 
 
 def main(anki: bool = False) -> None:
