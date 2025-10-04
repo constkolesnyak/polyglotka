@@ -7,13 +7,15 @@ import fire  # type: ignore
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
 from polyglotka.kanji.main import main as kanji_main
-from polyglotka.plots.main import main as plots_main
+from polyglotka.plots.Scatter.main import main as plots_main
+from polyglotka.plots.BarChart.main import main as histogram_main
 
 
 class Command(StrEnum):
     PLOTS = auto()
     KANJI = auto()
     ANKI = auto()
+    BAR_PLOTS = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -26,6 +28,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     match command:
         case Command.PLOTS:
             plots_main()
+        case Command.BAR_PLOTS:
+            histogram_main()
         case Command.KANJI:
             kanji_main()
         case Command.ANKI:

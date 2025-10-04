@@ -1,5 +1,6 @@
+from collections import defaultdict
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterable
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -29,6 +30,22 @@ class LRWord(BaseModel):
                 data['time_modified_ms'] / 1000
             )  # Convert milliseconds to seconds to datetime
         return data
+
+
+class WordDicts:
+    def __init__(self, words: Iterable[LRWord]) -> None:
+        self.all_words = set(words)
+        self.by_lang: defaultdict[str, set[LRWord]] = defaultdict(set)
+        self.by_stage: defaultdict[LearningStage, set[LRWord]] = defaultdict(set)
+        self.by_lang_stage: defaultdict[
+            tuple[str, LearningStage],
+            set[LRWord],
+        ] = defaultdict(set)
+
+        for word in self.all_words:
+            self.by_lang[word.language].add(word)
+            self.by_stage[word.learning_stage].add(word)
+            self.by_lang_stage[(word.language, word.learning_stage)].add(word)
 
 
 def import_lr_words() -> set[LRWord]:

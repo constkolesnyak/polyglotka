@@ -9,25 +9,10 @@ from funcy import pluck_attr  # pyright: ignore
 from polyglotka.common.config import config
 from polyglotka.lr_importer.lr_items import LearningStage
 from polyglotka.lr_importer.lr_words import LRWord
-from polyglotka.plots.appearance import configure_figure, get_color
+from polyglotka.plots.Scatter.appearance import configure_figure, get_color
+from polyglotka.lr_importer.lr_words import WordDicts
 
 ALL = 'ALL'  # all langs or all learning stages
-
-
-class WordDicts:
-    def __init__(self, words: Iterable[LRWord]) -> None:
-        self.all_words = set(words)
-        self.by_lang: defaultdict[str, set[LRWord]] = defaultdict(set)
-        self.by_stage: defaultdict[LearningStage, set[LRWord]] = defaultdict(set)
-        self.by_lang_stage: defaultdict[
-            tuple[str, LearningStage],
-            set[LRWord],
-        ] = defaultdict(set)
-
-        for word in self.all_words:
-            self.by_lang[word.language].add(word)
-            self.by_stage[word.learning_stage].add(word)
-            self.by_lang_stage[(word.language, word.learning_stage)].add(word)
 
 
 def create_points(words: Iterable[LRWord]) -> tuple[list[datetime], list[int]]:
