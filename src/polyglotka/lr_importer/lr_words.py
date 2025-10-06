@@ -1,15 +1,24 @@
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, model_validator
+from path import Path
+from pydantic import AliasChoices, BaseModel, Field, model_validator
 
-from polyglotka.lr_importer.lr_items import LearningStage, SavedWord, import_lr_items
+from polyglotka.common.config import config
+from polyglotka.common.exceptions import UserError
+from polyglotka.lr_importer.lr_items import (
+    LearningStage,
+    SavedWord,
+    find_lr_items_files,
+    import_lr_items,
+)
 
 
 class LRWord(BaseModel):
     key: str
     word: str
-    language: str = Field(alias='lang_code_g')
+    language: str = Field(validation_alias=AliasChoices('language', 'lang_code_g'))
     learning_stage: LearningStage
     date: datetime
 
@@ -32,6 +41,17 @@ class LRWord(BaseModel):
 
 
 def import_lr_words() -> set[LRWord]:
+    from polyglotka.lr_importer import words_cache
+
+    lr_files: list[Path] = find_lr_items_files()
+    if not lr_files:
+        if not words_cache.exists():
+            raise UserError(
+                f'LR files ({config.LR_DATA_FILES_GLOB_PATTERN}) are not found in directory: {config.LR_DATA_DIR}\n'
+                f'  Cache also not found: {words_cache.path()}'
+            )
+        return words_cache.read()
+
     all_words: list[LRWord] = [
         LRWord(**item.model_dump()) for item in import_lr_items() if isinstance(item, SavedWord)
     ]
@@ -42,4 +62,5 @@ def import_lr_words() -> set[LRWord]:
         if word.learning_stage in (LearningStage.KNOWN, LearningStage.LEARNING):
             unique_words.add(word)
 
+    words_cache.write(unique_words)
     return unique_words

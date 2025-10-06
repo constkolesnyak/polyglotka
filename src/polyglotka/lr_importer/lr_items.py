@@ -1,8 +1,8 @@
 import json
 from enum import StrEnum
-from pathlib import Path
 from typing import Any, Dict, Generator, List, Literal, Optional, Union
 
+from path import Path
 from pydantic import BaseModel, Field
 
 from polyglotka.common.config import config
@@ -281,30 +281,26 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
         return None
 
 
-def import_lr_items() -> Generator[SavedItem, None, None]:
+def find_lr_items_files() -> list[Path]:
     lr_data_dir = Path(config.LR_DATA_DIR)
     if not lr_data_dir.exists():
-        raise UserError(f'Directory not found: {lr_data_dir}')
+        raise UserError(f'LR data directory not found: {lr_data_dir}')
 
-    json_files = list(lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN))
-    if not json_files:
-        raise UserError(
-            f'LR files ({config.LR_DATA_FILES_GLOB_PATTERN}) are not found in directory: {lr_data_dir}'
-        )
+    return list(lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN))
+
+
+def import_lr_items() -> Generator[SavedItem, None, None]:
+    lr_files: list[Path] = find_lr_items_files()
 
     with Progress(
         progress_type=ProgressType.BAR,
         text='Importing LR data',
         postfix='files',
-        total_tasks=len(json_files),
+        total_tasks=len(lr_files),
     ) as progress:
-        for json_file in json_files:
-            with open(json_file, 'r', encoding='utf-8') as f:
-                items: list[Any] = json.load(f)
-
-            for item in items:
+        for lr_file in lr_files:
+            for item in json.loads(lr_file.read_text()):
                 saved_item: SavedWord | SavedPhrase | None = parse_saved_item(item)
                 assert saved_item
                 yield saved_item
-
             progress.update(advance=1)
