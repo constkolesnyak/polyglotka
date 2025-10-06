@@ -16,7 +16,7 @@ from polyglotka.lr_importer.lr_items import (
 )
 
 
-class LRWord(BaseModel):
+class Word(BaseModel):
     key: str
     word: str
     language: str = Field(validation_alias=AliasChoices('language', 'lang_code_g'))
@@ -27,7 +27,7 @@ class LRWord(BaseModel):
         return hash(self.key)
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, LRWord) and self.key == other.key
+        return isinstance(other, Word) and self.key == other.key
 
     @model_validator(mode='before')
     @classmethod
@@ -41,7 +41,7 @@ class LRWord(BaseModel):
         return data
 
 
-def import_lr_words() -> set[LRWord]:  # tdc rm lr_ everywhere
+def import_words() -> set[Word]:  # tdc rm lr_ everywhere
     from polyglotka.lr_importer import words_cache
 
     lr_files: list[Path] = find_lr_files()
@@ -52,11 +52,11 @@ def import_lr_words() -> set[LRWord]:  # tdc rm lr_ everywhere
         pprint(f'{lr_files_not_found}. Using cache')
         return words_cache.read()
 
-    all_words: list[LRWord] = [
-        LRWord(**item.model_dump()) for item in import_lr_items() if isinstance(item, SavedWord)
+    all_words: list[Word] = [
+        Word(**item.model_dump()) for item in import_lr_items() if isinstance(item, SavedWord)
     ]
 
-    unique_words: set[LRWord] = set()
+    unique_words: set[Word] = set()
     for word in sorted(all_words, key=lambda w: w.date):
         unique_words.discard(word)  # Remove older occurrences
         if word.learning_stage in (LearningStage.KNOWN, LearningStage.LEARNING):

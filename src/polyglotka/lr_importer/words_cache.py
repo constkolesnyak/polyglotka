@@ -5,7 +5,7 @@ from path import Path
 from platformdirs import user_cache_dir
 
 from polyglotka.common.config import config
-from polyglotka.lr_importer.lr_words import LRWord
+from polyglotka.lr_importer.lr_words import Word
 
 
 def path() -> Path:
@@ -18,13 +18,13 @@ def exists() -> bool:
     return path().exists()
 
 
-def read() -> set[LRWord]:
-    from polyglotka.lr_importer.lr_words import LRWord
+def read() -> set[Word]:
+    from polyglotka.lr_importer.lr_words import Word
 
-    return {LRWord.model_validate(word) for word in json.loads(path().read_text())}
+    return {Word.model_validate(word) for word in json.loads(path().read_text())}
 
 
-def write(lr_words: Iterable[LRWord]) -> None:
+def write(lr_words: Iterable[Word]) -> None:
     path().write_text(
         json.dumps(
             [json.loads(word.model_dump_json()) for word in lr_words],
