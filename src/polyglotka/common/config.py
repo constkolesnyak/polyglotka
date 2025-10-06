@@ -8,7 +8,8 @@ from polyglotka.common.exceptions import UserError
 
 
 class _Config(BaseSettings):  # Singleton
-    ENV_PREFIX: str = 'POLYGLOTKA_'
+    APP_NAME: str = 'polyglotka'
+    ENV_PREFIX: str = f'{APP_NAME.upper()}_'
     model_config = SettingsConfigDict(env_file='.env', env_prefix=ENV_PREFIX, case_sensitive=True)
 
     LR_DATA_DIR: str = Path.home() / 'Downloads'
