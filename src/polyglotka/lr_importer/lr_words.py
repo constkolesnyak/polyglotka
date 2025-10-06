@@ -6,11 +6,12 @@ from path import Path
 from pydantic import AliasChoices, BaseModel, Field, model_validator
 
 from polyglotka.common.config import config
+from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.lr_importer.lr_items import (
     LearningStage,
     SavedWord,
-    find_lr_items_files,
+    find_lr_files,
     import_lr_items,
 )
 
@@ -40,16 +41,15 @@ class LRWord(BaseModel):
         return data
 
 
-def import_lr_words() -> set[LRWord]:
+def import_lr_words() -> set[LRWord]:  # tdc rm lr_ everywhere
     from polyglotka.lr_importer import words_cache
 
-    lr_files: list[Path] = find_lr_items_files()
+    lr_files: list[Path] = find_lr_files()
     if not lr_files:
+        lr_files_not_found = f'LR files "{config.LR_DATA_FILES_GLOB_PATTERN}" are not found in directory: "{config.LR_DATA_DIR}"'
         if not words_cache.exists():
-            raise UserError(
-                f'LR files ({config.LR_DATA_FILES_GLOB_PATTERN}) are not found in directory: {config.LR_DATA_DIR}\n'
-                f'  Cache also not found: {words_cache.path()}'
-            )
+            raise UserError(f'{lr_files_not_found}\n  Cache also not found: "{words_cache.path()}"')
+        pprint(f'{lr_files_not_found}. Using cache')
         return words_cache.read()
 
     all_words: list[LRWord] = [
