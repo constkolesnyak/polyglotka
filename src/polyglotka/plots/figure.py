@@ -7,8 +7,7 @@ import plotly.graph_objects as go  # pyright: ignore
 from funcy import pluck_attr  # pyright: ignore
 
 from polyglotka.common.config import config
-from polyglotka.importer.language_reactor.items import LearningStage
-from polyglotka.importer.words import Word
+from polyglotka.importer.words import LearningStage, Word
 from polyglotka.plots.appearance import configure_figure, get_color
 
 ALL = 'ALL'  # all langs or all learning stages

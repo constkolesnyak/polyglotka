@@ -9,11 +9,15 @@ from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.importer.language_reactor.items import (
-    LearningStage,
     SavedWord,
     find_lr_files,
     import_lr_items,
 )
+from polyglotka.importer.language_reactor.structures import (
+    LearningStage as LRLearningStage,
+)
+
+LearningStage = LRLearningStage
 
 
 class Word(BaseModel):
@@ -41,7 +45,7 @@ class Word(BaseModel):
         return data
 
 
-def import_words() -> set[Word]:  # tdc rm lr_ everywhere
+def import_words() -> set[Word]:
     from polyglotka.importer import words_cache
 
     lr_files: list[Path] = find_lr_files()
@@ -49,7 +53,7 @@ def import_words() -> set[Word]:  # tdc rm lr_ everywhere
         lr_files_not_found = f'LR files "{config.LR_DATA_FILES_GLOB_PATTERN}" are not found in directory: "{config.LR_DATA_DIR}"'
         if not words_cache.exists():
             raise UserError(f'{lr_files_not_found}\n  Cache also not found: "{words_cache.path()}"')
-        pprint(f'{lr_files_not_found}. Using cache')
+        pprint(f'{lr_files_not_found}. Using cache.')
         return words_cache.read()
 
     all_words: list[Word] = [

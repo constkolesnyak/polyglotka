@@ -6,8 +6,7 @@ import regex as re
 from pydantic import BaseModel
 
 from polyglotka.common.config import config
-from polyglotka.importer.language_reactor.items import LearningStage
-from polyglotka.importer.words import Word, import_words
+from polyglotka.importer.words import LearningStage, Word, import_words
 
 
 class Kanji(BaseModel):

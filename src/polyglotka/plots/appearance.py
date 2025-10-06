@@ -4,7 +4,7 @@ import dash
 import plotly.graph_objects as go
 
 from polyglotka.common.config import config
-from polyglotka.importer.language_reactor.items import LearningStage
+from polyglotka.importer.words import LearningStage
 
 
 def hsl_to_rgb(h: int, s: int, l: int) -> str:
