@@ -8,7 +8,7 @@ from pydantic import AliasChoices, BaseModel, Field, model_validator
 from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
-from polyglotka.lr_importer.lr_items import (
+from polyglotka.importer.language_reactor.items import (
     LearningStage,
     SavedWord,
     find_lr_files,
@@ -42,7 +42,7 @@ class Word(BaseModel):
 
 
 def import_words() -> set[Word]:  # tdc rm lr_ everywhere
-    from polyglotka.lr_importer import words_cache
+    from polyglotka.importer import words_cache
 
     lr_files: list[Path] = find_lr_files()
     if not lr_files:

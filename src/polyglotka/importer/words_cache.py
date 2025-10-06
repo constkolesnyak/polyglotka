@@ -5,7 +5,7 @@ from path import Path
 from platformdirs import user_cache_dir
 
 from polyglotka.common.config import config
-from polyglotka.lr_importer.lr_words import Word
+from polyglotka.importer.words import Word
 
 
 def path() -> Path:
@@ -19,7 +19,7 @@ def exists() -> bool:
 
 
 def read() -> set[Word]:
-    from polyglotka.lr_importer.lr_words import Word
+    from polyglotka.importer.words import Word
 
     return {Word.model_validate(word) for word in json.loads(path().read_text())}
 
