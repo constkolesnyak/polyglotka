@@ -10,7 +10,7 @@ from polyglotka.common.exceptions import UserError
 class _Config(BaseSettings):  # Singleton
     APP_NAME: str = 'polyglotka'
     ENV_PREFIX: str = f'{APP_NAME.upper()}_'
-    model_config = SettingsConfigDict(env_file='.env', env_prefix=ENV_PREFIX, case_sensitive=True)
+    model_config = SettingsConfigDict(env_prefix=ENV_PREFIX, case_sensitive=True)
 
     LR_DATA_DIR: str = Path.home() / 'Downloads'
     LR_DATA_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
