@@ -15,7 +15,8 @@ class Command(StrEnum):
     PLOTS = auto()
     KANJI = auto()
     ANKI = auto()
-    BAR_PLOTS = auto()
+    BAR = auto()
+    STACKED_BAR = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -28,8 +29,10 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     match command:
         case Command.PLOTS:
             plots_main()
-        case Command.BAR_PLOTS:
+        case Command.STACKED_BAR:
             histogram_main()
+        case Command.BAR:
+            histogram_main(False)
         case Command.KANJI:
             kanji_main()
         case Command.ANKI:

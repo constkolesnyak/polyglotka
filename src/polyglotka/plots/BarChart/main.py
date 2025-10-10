@@ -12,7 +12,7 @@ from polyglotka.lr_importer.lr_words import import_lr_words
 from polyglotka.common.config import config 
 
 
-def main():
+def main(stacked = True):
     def _open_browser_and_die():
         time.sleep(0.3)
         webbrowser.open(config.PLOTS_SERVER_URL)
@@ -23,7 +23,7 @@ def main():
 
     words = import_lr_words()
 
-    fig = create_bars(words)
+    fig = create_bars(words, stacked)
 
     dash_app = create_dash_app(fig)
 
