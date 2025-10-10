@@ -12,8 +12,8 @@ import waitress
 from polyglotka.common.config import config
 from polyglotka.common.console import Progress, ProgressType
 from polyglotka.importer.words import import_words
-from polyglotka.plots.appearance import create_dash_app
-from polyglotka.plots.figure import create_figure
+from polyglotka.common.utils import create_dash_app
+from polyglotka.plots.Scatter.figure import create_figure
 
 # Silence the waitress queue depth warnings
 logging.getLogger('waitress.queue').setLevel(logging.ERROR)

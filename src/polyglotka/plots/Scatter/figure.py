@@ -8,7 +8,7 @@ from funcy import pluck_attr  # pyright: ignore
 
 from polyglotka.common.config import config
 from polyglotka.importer.words import LearningStage, Word
-from polyglotka.plots.appearance import configure_figure, get_color
+from polyglotka.plots.Scatter.appearance import configure_figure, get_color
 
 ALL = 'ALL'  # all langs or all learning stages
 
