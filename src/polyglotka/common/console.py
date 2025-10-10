@@ -1,7 +1,7 @@
 import sys
 from enum import StrEnum, auto
 from types import TracebackType
-from typing import Optional, Self, Type
+from typing import Any, Optional, Self, Type
 
 from pydantic import BaseModel, ConfigDict
 from rich.console import Console
@@ -10,11 +10,16 @@ from rich.progress import Progress as RichProgress
 from rich.progress import SpinnerColumn, TextColumn
 
 _console = Console(file=sys.stderr, force_terminal=True)  # Singleton
+COLOR = 'bright_magenta'
 
 
 class ProgressType(StrEnum):
     BAR = auto()
     TEXT = auto()
+
+
+def pprint(*args: Any) -> None:
+    _console.print(*args, style=COLOR)
 
 
 class Progress(BaseModel):
@@ -24,7 +29,7 @@ class Progress(BaseModel):
     text: str
     postfix: str = ''
     total_tasks: int | None = None
-    color: str = 'bright_magenta'
+    color: str = COLOR
 
     def __enter__(self) -> Self:
         self.text += '...'

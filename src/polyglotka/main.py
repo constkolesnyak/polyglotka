@@ -12,7 +12,7 @@ from polyglotka.plots.BarChart.main import main as histogram_main
 
 
 class Command(StrEnum):
-    PLOTS = auto()
+    SCATTER = auto()
     KANJI = auto()
     ANKI = auto()
     BAR = auto()
@@ -27,7 +27,7 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     config.override(config_upd)
 
     match command:
-        case Command.PLOTS:
+        case Command.SCATTER:
             plots_main()
         case Command.STACKED_BAR:
             histogram_main()

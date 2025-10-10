@@ -31,18 +31,19 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
 ### Variables
 
-| Name                       | Type    | Default                 | Description                           |
-| -------------------------- | ------- | ----------------------- | ------------------------------------- |
-| LR_DATA_DIR                | str     | $HOME/Downloads         | Directory with LR exports             |
-| LR_DATA_FILES_GLOB_PATTERN | str     | lln_json_items\_\*.json | Glob for LR exports                   |
-| PLOTS_TITLE                | str     | Polyglotka Plots        | Title of the plots                    |
-| PLOTS_BACKGROUND_COLOR     | str     | \#171717                | Background color (dark by default)    |
-| PLOTS_SERVER_URL           | str     | http://127.0.0.1:8050   | URL the plots server binds to         |
-| PLOTS_SMOOTH               | bool    | True                    | Smoothing for cleaner visuals         |
-| PLOTS_HIDE_AGGR            | bool    | True                    | Hide aggregate plots until toggled    |
-| ANKI_MIN_COUNTS            | int,int | 0,0                     | Min counts for (known,learning) words |
-| ANKI_FILTERS               | str     | deck:漢字 is:suspended  | Anki search query filters             |
-| ANKI_KANJI_FIELD           | str     | kanji                   | Anki field name containing kanji      |
+| Name                       | Type    | Default                 | Description                            |
+| -------------------------- | ------- | ----------------------- | -------------------------------------- |
+| LR_DATA_DIR                | str     | $HOME/Downloads         | Directory with LR files                |
+| LR_DATA_FILES_GLOB_PATTERN | str     | lln_json_items\_\*.json | Glob for LR files                      |
+| LR_DATA_FILES_RM           | str     | True                    | Remove LR files after caching the data |
+| PLOTS_TITLE                | str     | Polyglotka Plots        | Title of the plots                     |
+| PLOTS_BACKGROUND_COLOR     | str     | \#171717                | Background color (dark by default)     |
+| PLOTS_SERVER_URL           | str     | http://127.0.0.1:8050   | URL the plots server binds to          |
+| PLOTS_SMOOTH               | bool    | True                    | Smoothing for cleaner visuals          |
+| PLOTS_HIDE_AGGR            | bool    | True                    | Hide aggregate plots until toggled     |
+| ANKI_MIN_COUNTS            | int,int | 0,0                     | Min counts for (known,learning) words  |
+| ANKI_FILTERS               | str     | deck:漢字 is:suspended  | Anki search query filters              |
+| ANKI_KANJI_FIELD           | str     | kanji                   | Anki field name containing kanji       |
 
 ## Run
 

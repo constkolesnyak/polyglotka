@@ -7,15 +7,29 @@ import plotly.graph_objects as go  # pyright: ignore
 from funcy import pluck_attr  # pyright: ignore
 
 from polyglotka.common.config import config
-from polyglotka.lr_importer.lr_items import LearningStage
-from polyglotka.lr_importer.lr_words import LRWord
+from polyglotka.importer.words import LearningStage, Word
 from polyglotka.plots.Scatter.appearance import configure_figure, get_color
-from polyglotka.lr_importer.lr_words import WordDicts
 
 ALL = 'ALL'  # all langs or all learning stages
 
 
-def create_points(words: Iterable[LRWord]) -> tuple[list[datetime], list[int]]:
+class WordDicts:
+    def __init__(self, words: Iterable[Word]) -> None:
+        self.all_words = set(words)
+        self.by_lang: defaultdict[str, set[Word]] = defaultdict(set)
+        self.by_stage: defaultdict[LearningStage, set[Word]] = defaultdict(set)
+        self.by_lang_stage: defaultdict[
+            tuple[str, LearningStage],
+            set[Word],
+        ] = defaultdict(set)
+
+        for word in self.all_words:
+            self.by_lang[word.language].add(word)
+            self.by_stage[word.learning_stage].add(word)
+            self.by_lang_stage[(word.language, word.learning_stage)].add(word)
+
+
+def create_points(words: Iterable[Word]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
     start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
     hourly_points = [
@@ -37,7 +51,7 @@ def create_points(words: Iterable[LRWord]) -> tuple[list[datetime], list[int]]:
 def create_trace(
     language: str,
     learning_stage: str,
-    words: Iterable[LRWord],
+    words: Iterable[Word],
 ) -> go.Scatter:
     x_data, y_data = create_points(words)
     name = f'{language.upper()} - {learning_stage.capitalize()}'
@@ -62,7 +76,7 @@ def create_trace(
     )
 
 
-def create_figure(words: Iterable[LRWord]) -> go.Figure:
+def create_figure(words: Iterable[Word]) -> go.Figure:
     wds = WordDicts(words)
     fig: go.Figure = go.Figure()
     languages = wds.by_lang.keys()

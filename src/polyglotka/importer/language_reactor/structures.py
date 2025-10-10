@@ -1,13 +1,7 @@
-import json
 from enum import StrEnum
-from pathlib import Path
-from typing import Any, Dict, Generator, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
-
-from polyglotka.common.config import config
-from polyglotka.common.console import Progress, ProgressType
-from polyglotka.common.exceptions import UserError
 
 # You can also print the first item straight from the json file to see the schema:
 # jq '.[0] | del(.audio, .context.phrase.subtitleTokens, .context.phrase.thumb_next, .context.phrase.thumb_prev)' lln_json_items_2025-9-23_part-1_645391.json
@@ -260,51 +254,3 @@ class SavedPhrase(BaseModel):
 
 
 SavedItem = Union[SavedWord, SavedPhrase]
-
-
-def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
-    """Parse a raw JSON item into a SavedItem (SavedWord or SavedPhrase)."""
-    try:
-        item_type = item_data.get('itemType')
-        if item_type == 'WORD':
-            return SavedWord(**item_data)
-        elif item_type == 'PHRASE':
-            return SavedPhrase(**item_data)
-        else:
-            print(f"Warning: Unknown item type '{item_type}', skipping item")
-            return None
-    except Exception as e:
-        print(f'Warning: Failed to parse item as SavedItem: {e}')
-        print(
-            f"Item data keys: {list(item_data.keys()) if isinstance(item_data, dict) else 'Not a dict'}"  # pyright: ignore
-        )
-        return None
-
-
-def import_lr_items() -> Generator[SavedItem, None, None]:
-    lr_data_dir = Path(config.LR_DATA_DIR)
-    if not lr_data_dir.exists():
-        raise UserError(f'Directory not found: {lr_data_dir}')
-
-    json_files = list(lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN))
-    if not json_files:
-        raise UserError(
-            f'LR files ({config.LR_DATA_FILES_GLOB_PATTERN}) are not found in directory: {lr_data_dir}'
-        )
-
-    with Progress(
-        progress_type=ProgressType.BAR,
-        text='Importing LR data',
-        postfix='files',
-        total_tasks=len(json_files),
-    ) as progress:
-        for json_file in json_files:
-            with open(json_file, 'r', encoding='utf-8') as f:
-                items: list[Any] = json.load(f)
-
-            for item in items:
-                saved_item: SavedWord | SavedPhrase | None = parse_saved_item(item)
-                assert saved_item
-                yield saved_item
-
-            progress.update(advance=1)

@@ -6,9 +6,7 @@ import regex as re
 from pydantic import BaseModel
 
 from polyglotka.common.config import config
-from polyglotka.common.exceptions import UserError
-from polyglotka.lr_importer.lr_items import LearningStage
-from polyglotka.lr_importer.lr_words import LRWord, import_lr_words
+from polyglotka.importer.words import LearningStage, Word, import_words
 
 
 class Kanji(BaseModel):
@@ -21,7 +19,7 @@ def find_kanji_chars(text: str) -> set[str]:
     return set(re.findall(r'\p{Han}', text, flags=re.VERSION1))
 
 
-def collect_kanji_with_words(words: Iterable[LRWord]) -> list[Kanji]:
+def collect_kanji_with_words(words: Iterable[Word]) -> list[Kanji]:
     kanji_dict: defaultdict[str, Kanji] = defaultdict(Kanji)
 
     for word in words:
@@ -82,4 +80,4 @@ def create_anki_search_query(kanji_sorted_desc: Iterable[Kanji]) -> str:
 
 def main(anki: bool = False) -> None:
     func: Callable[..., str] = create_anki_search_query if anki else create_tsv_kanji
-    print(func(sorted_desc_kanji(collect_kanji_with_words(import_lr_words()))))
+    print(func(sorted_desc_kanji(collect_kanji_with_words(import_words()))))

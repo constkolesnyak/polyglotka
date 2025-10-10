@@ -8,7 +8,7 @@ import threading
 
 from polyglotka.plots.BarChart.figure import create_bars
 from polyglotka.common.utils import create_dash_app
-from polyglotka.lr_importer.lr_words import import_lr_words
+from polyglotka.importer.words import import_words
 from polyglotka.common.config import config 
 
 
@@ -21,7 +21,7 @@ def main(stacked = True):
 
         os._exit(0)
 
-    words = import_lr_words()
+    words = import_words()
 
     fig = create_bars(words, stacked)
 

@@ -8,11 +8,13 @@ from polyglotka.common.exceptions import UserError
 
 
 class _Config(BaseSettings):  # Singleton
-    ENV_PREFIX: str = 'POLYGLOTKA_'
-    model_config = SettingsConfigDict(env_file='.env', env_prefix=ENV_PREFIX, case_sensitive=True)
+    APP_NAME: str = 'polyglotka'
+    ENV_PREFIX: str = f'{APP_NAME.upper()}_'
+    model_config = SettingsConfigDict(env_prefix=ENV_PREFIX, case_sensitive=True)
 
     LR_DATA_DIR: str = Path.home() / 'Downloads'
     LR_DATA_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
+    LR_DATA_FILES_RM: bool = True
 
     PLOTS_TITLE: str = 'Polyglotka Plots'
     PLOTS_BACKGROUND_COLOR: str = '#171717'
