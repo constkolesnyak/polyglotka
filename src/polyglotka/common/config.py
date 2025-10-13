@@ -26,6 +26,9 @@ class _Config(BaseSettings):  # Singleton
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'
     ANKI_KANJI_FIELD: str = 'kanji'
 
+    STAGE: str = ''
+    LANG: str = ''
+
     @property
     def anki_min_counts(self) -> tuple[int, int]:
         assert isinstance(self.ANKI_MIN_COUNTS, tuple)

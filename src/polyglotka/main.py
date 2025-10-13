@@ -6,6 +6,7 @@ import fire  # type: ignore
 
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
+from polyglotka.exporter.main import main as exporter_main
 from polyglotka.kanji.main import main as kanji_main
 from polyglotka.plots.main import main as plots_main
 
@@ -14,6 +15,7 @@ class Command(StrEnum):
     PLOTS = auto()
     KANJI = auto()
     ANKI = auto()
+    WORDS = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -30,6 +32,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             kanji_main()
         case Command.ANKI:
             kanji_main(anki=True)
+        case Command.WORDS:
+            exporter_main()
 
 
 def main() -> None:
