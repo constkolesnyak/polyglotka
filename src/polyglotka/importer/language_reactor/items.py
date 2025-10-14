@@ -37,7 +37,7 @@ def find_lr_files() -> list[Path]:
     if not lr_data_dir.exists():
         raise UserError(f'LR data directory not found: {lr_data_dir}')
 
-    return list(lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN))
+    return lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN)
 
 
 def import_lr_items() -> Generator[SavedItem, None, None]:

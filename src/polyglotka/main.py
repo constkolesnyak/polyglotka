@@ -16,6 +16,7 @@ class Command(StrEnum):
     KANJI = auto()
     ANKI = auto()
     WORDS = auto()
+    SUBS = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -34,6 +35,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             kanji_main(anki=True)
         case Command.WORDS:
             exporter_main()
+        case Command.SUBS:
+            ...  # tdc
 
 
 def main() -> None:

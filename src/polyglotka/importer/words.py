@@ -67,7 +67,7 @@ def import_words() -> set[Word]:
             unique_words.add(word)
 
     words_cache.write(unique_words)
-    if config.LR_DATA_FILES_RM:
+    if config.LR_FILES_RM:
         for lr_file in lr_files:
             lr_file.remove_p()
 
