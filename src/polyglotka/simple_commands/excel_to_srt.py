@@ -5,7 +5,9 @@ import pandas as pd
 from path import Path
 
 from polyglotka.common.config import config
+from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
+from polyglotka.common.utils import remove_files_maybe
 
 MIN_DURATION_MS = 1000
 MAX_DURATION_MS = 6000
@@ -101,7 +103,7 @@ def build_segments(
     return segments
 
 
-def create_srt(segments: Sequence[Optional[SubtitleSegment]], texts: Sequence[str]) -> str:
+def create_srt_text(segments: Sequence[Optional[SubtitleSegment]], texts: Sequence[str]) -> str:
     """Render the SRT file using pre-computed aligned segments."""
 
     lines: list[str] = []
@@ -143,13 +145,18 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
     return next_starts
 
 
-def create_srt_filename(lr_subs_file: str, postfix: str) -> Path:
+def create_srt_path(lr_subs_file: str, postfix: str) -> Path:
     lr_subs_file = Path(lr_subs_file)
     lr_subs_id: str = lr_subs_file.stem.split('_')[-1]
     return lr_subs_file.with_name(f'{lr_subs_id}_{postfix}.srt')
 
 
-def create_both_srt_files(lr_subs_file: str) -> None:
+def create_srt_file(srt_path: Path, srt_text: str) -> None:
+    srt_path.write_text(srt_text, encoding='utf-8')
+    pprint(f'Created "{srt_path}".')
+
+
+def convert_excel_to_srt(lr_subs_file: str) -> None:
     dataframe: pd.DataFrame = pd.read_excel(Path(lr_subs_file))  # type: ignore
 
     times_ms: list[int | None] = [parse_time(value) for value in dataframe['Time']]
@@ -160,11 +167,15 @@ def create_both_srt_files(lr_subs_file: str) -> None:
 
     segments: list[SubtitleSegment | None] = build_segments(times_ms, primary_texts, secondary_texts)
 
-    primary_path: Path = create_srt_filename(lr_subs_file, 'primary')
-    primary_path.write_text(create_srt(segments, primary_texts), encoding='utf-8')
+    create_srt_file(
+        create_srt_path(lr_subs_file, 'primary'),
+        create_srt_text(segments, primary_texts),
+    )
     if secondary_texts is not None:
-        secondary_path: Path = create_srt_filename(lr_subs_file, 'secondary')
-        secondary_path.write_text(create_srt(segments, secondary_texts), encoding='utf-8')
+        create_srt_file(
+            create_srt_path(lr_subs_file, 'secondary'),
+            create_srt_text(segments, secondary_texts),
+        )
 
 
 def find_lr_subs_files() -> list[Path]:
@@ -178,8 +189,5 @@ def find_lr_subs_files() -> list[Path]:
 def main() -> None:
     lr_subs_files: list[Path] = find_lr_subs_files()
     for lr_subs_file in lr_subs_files:
-        create_both_srt_files(lr_subs_file)
-
-    if config.LR_FILES_RM:
-        for lr_subs_file in lr_subs_files:
-            lr_subs_file.remove_p()
+        convert_excel_to_srt(lr_subs_file)
+    remove_files_maybe(lr_subs_files)

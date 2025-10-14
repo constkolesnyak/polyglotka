@@ -8,6 +8,7 @@ from pydantic import AliasChoices, BaseModel, Field, model_validator
 from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
+from polyglotka.common.utils import remove_files_maybe
 from polyglotka.importer.language_reactor.items import (
     SavedWord,
     find_lr_files,
@@ -67,8 +68,7 @@ def import_words() -> set[Word]:
             unique_words.add(word)
 
     words_cache.write(unique_words)
-    if config.LR_FILES_RM:
-        for lr_file in lr_files:
-            lr_file.remove_p()
+    pprint(f'Cached {len(unique_words)} words.')
+    remove_files_maybe(lr_files)
 
     return unique_words
