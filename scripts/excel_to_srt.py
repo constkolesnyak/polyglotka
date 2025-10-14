@@ -1,20 +1,17 @@
-#!/usr/bin/env python3
-"""Convert Excel exports to aligned SRT subtitle/translation tracks."""
-
-from __future__ import annotations
-
-import sys
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional, Sequence
 
 import pandas as pd
+from path import Path
+
+from polyglotka.common.config import config
+from polyglotka.common.exceptions import UserError
 
 MIN_DURATION_MS = 1000
 MAX_DURATION_MS = 6000
 BASE_DURATION_MS = 400
 MS_PER_CHAR = 65
-GAP_BETWEEN_SEGMENTS_MS = 100
+GAP_BETWEEN_SEGMENTS_MS = 50
 
 
 @dataclass(frozen=True)
@@ -23,7 +20,7 @@ class SubtitleSegment:
     end_ms: int
 
 
-def parse_time(value: object) -> Optional[int]:
+def parse_time(value: str | None) -> Optional[int]:
     """Parse a timestamp into milliseconds; return None for missing data."""
 
     if value is None or (isinstance(value, float) and pd.isna(value)):
@@ -33,10 +30,10 @@ def parse_time(value: object) -> Optional[int]:
     if not time_str:
         return None
 
-    if time_str.endswith("s"):
+    if time_str.endswith('s'):
         return int(float(time_str[:-1]) * 1000)
 
-    parts = time_str.split(":")
+    parts = time_str.split(':')
     try:
         if len(parts) == 2:
             minutes, seconds = parts
@@ -44,17 +41,17 @@ def parse_time(value: object) -> Optional[int]:
         if len(parts) == 3:
             hours, minutes, seconds = parts
             return int((int(hours) * 3600 + int(minutes) * 60 + float(seconds)) * 1000)
-    except ValueError as exc:  # fall through to error message
-        raise ValueError(f"Invalid time format: {time_str}") from exc
+    except ValueError as exc:
+        raise ValueError(f'Invalid time format: {time_str}') from exc
 
-    raise ValueError(f"Invalid time format: {time_str}")
+    raise ValueError(f'Invalid time format: {time_str}')
 
 
 def ms_to_srt(ms: int) -> str:
     hours, remainder = divmod(ms, 3600000)
     minutes, remainder = divmod(remainder, 60000)
     seconds, milliseconds = divmod(remainder, 1000)
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
+    return f'{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}'
 
 
 def estimate_end(start_ms: int, text: str, next_start_ms: Optional[int]) -> int:
@@ -104,11 +101,7 @@ def build_segments(
     return segments
 
 
-def create_srt(
-    segments: Sequence[Optional[SubtitleSegment]],
-    texts: Sequence[str],
-    output_path: Path,
-) -> int:
+def create_srt(segments: Sequence[Optional[SubtitleSegment]], texts: Sequence[str]) -> str:
     """Render the SRT file using pre-computed aligned segments."""
 
     lines: list[str] = []
@@ -116,62 +109,27 @@ def create_srt(
     for segment, raw_text in zip(segments, texts):
         if segment is None:
             continue
-
         text = _normalise_text(raw_text)
         if not text:
             continue
 
         lines.append(str(counter))
-        lines.append(f"{ms_to_srt(segment.start_ms)} --> {ms_to_srt(segment.end_ms)}")
+        lines.append(f'{ms_to_srt(segment.start_ms)} --> {ms_to_srt(segment.end_ms)}')
         lines.extend(text.splitlines())
-        lines.append("")
+        lines.append('')
         counter += 1
 
-    output_path.write_text("\n".join(lines), encoding="utf-8")
-    return counter - 1
+    return '\n'.join(lines)
 
 
-def main() -> None:
-    if len(sys.argv) < 2:
-        print("Usage: python excel_to_srt.py <input.xlsx>")
-        sys.exit(1)
-
-    excel_path = Path(sys.argv[1])
-    df = pd.read_excel(excel_path)
-
-    try:
-        times_ms = [parse_time(value) for value in df["Time"]]
-    except KeyError as exc:
-        raise SystemExit("Missing required 'Time' column") from exc
-
-    try:
-        primary_texts = df["Subtitle"].tolist()
-    except KeyError as exc:
-        raise SystemExit("Missing required 'Subtitle' column") from exc
-
-    secondary_texts = df["Machine Translation"].tolist() if "Machine Translation" in df.columns else None
-    segments = build_segments(times_ms, primary_texts, secondary_texts)
-
-    subtitle_path = excel_path.with_name(f"{excel_path.stem}_subtitles.srt")
-    subtitle_count = create_srt(segments, primary_texts, subtitle_path)
-    print(f"Created {subtitle_path} with {subtitle_count} subtitles")
-
-    if secondary_texts is not None:
-        translation_path = excel_path.with_name(f"{excel_path.stem}_translations.srt")
-        translation_count = create_srt(segments, secondary_texts, translation_path)
-        print(f"Created {translation_path} with {translation_count} subtitles")
-    else:
-        print("No 'Machine Translation' column found")
-
-
-def _normalise_text(value: object) -> str:
+def _normalise_text(value: str | None) -> str:
     if value is None or (isinstance(value, float) and pd.isna(value)):
-        return ""
+        return ''
     return str(value).strip()
 
 
 def _strip_newlines(text: str) -> str:
-    return text.replace("\n", " ").strip()
+    return text.replace('\n', ' ').strip()
 
 
 def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int]]:
@@ -185,5 +143,43 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
     return next_starts
 
 
-if __name__ == "__main__":
-    main()
+def create_srt_filename(lr_subs_file: str, postfix: str) -> Path:
+    lr_subs_file = Path(lr_subs_file)
+    lr_subs_id: str = lr_subs_file.stem.split('_')[-1]
+    return lr_subs_file.with_name(f'{lr_subs_id}_{postfix}.srt')
+
+
+def create_both_srt_files(lr_subs_file: str) -> None:
+    dataframe: pd.DataFrame = pd.read_excel(Path(lr_subs_file))  # type: ignore
+
+    times_ms: list[int | None] = [parse_time(value) for value in dataframe['Time']]
+    primary_texts: list[str] = dataframe['Subtitle'].tolist()
+    secondary_texts: list[str] | None = (
+        dataframe['Machine Translation'].tolist() if 'Machine Translation' in dataframe.columns else None
+    )
+
+    segments: list[SubtitleSegment | None] = build_segments(times_ms, primary_texts, secondary_texts)
+
+    primary_path: Path = create_srt_filename(lr_subs_file, 'primary')
+    primary_path.write_text(create_srt(segments, primary_texts), encoding='utf-8')
+    if secondary_texts is not None:
+        secondary_path: Path = create_srt_filename(lr_subs_file, 'secondary')
+        secondary_path.write_text(create_srt(segments, secondary_texts), encoding='utf-8')
+
+
+def find_lr_subs_files() -> list[Path]:
+    lr_subs_dir = Path(config.LR_SUBS_DIR)
+    if not lr_subs_dir.exists():
+        raise UserError(f'LR subs directory not found: {lr_subs_dir}')
+
+    return lr_subs_dir.glob(config.LR_SUBS_FILES_GLOB_PATTERN)
+
+
+def main() -> None:
+    lr_subs_files: list[Path] = find_lr_subs_files()
+    for lr_subs_file in lr_subs_files:
+        create_both_srt_files(lr_subs_file)
+
+    if config.LR_FILES_RM:
+        for lr_subs_file in lr_subs_files:
+            lr_subs_file.remove_p()
