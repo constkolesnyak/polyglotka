@@ -105,6 +105,8 @@ Convert Excel subs to srt ~~to import them to Migaku~~.
 
 Here's how to export Excel subs:
 
+<br>
+
 <img src='media/export_subs_1.png' width='400'>
 
 <br>
