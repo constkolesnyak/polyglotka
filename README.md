@@ -31,25 +31,26 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
 ### Variables
 
-| Name                       | Type    | Default                 | Description                            |
-| -------------------------- | ------- | ----------------------- | -------------------------------------- |
-| LR_DATA_DIR                | str     | $HOME/Downloads         | Directory with LR files                |
-| LR_DATA_FILES_GLOB_PATTERN | str     | lln_json_items\_\*.json | Glob for LR files                      |
-| LR_DATA_FILES_RM           | str     | True                    | Remove LR files after caching the data |
-| PLOTS_TITLE                | str     | Polyglotka Plots        | Title of the plots                     |
-| PLOTS_BACKGROUND_COLOR     | str     | \#171717                | Background color (dark by default)     |
-| PLOTS_SERVER_URL           | str     | http://127.0.0.1:8050   | URL the plots server binds to          |
-| PLOTS_SMOOTH               | bool    | True                    | Smoothing for cleaner visuals          |
-| PLOTS_HIDE_AGGR            | bool    | True                    | Hide aggregate plots until toggled     |
-| ANKI_MIN_COUNTS            | int,int | 0,0                     | Min counts for (known,learning) words  |
-| ANKI_FILTERS               | str     | deck:漢字 is:suspended  | Anki search query filters              |
-| ANKI_KANJI_FIELD           | str     | kanji                   | Anki field name containing kanji       |
+| Name                   | Type    | Default                | Description                           |
+| ---------------------- | ------- | ---------------------- | ------------------------------------- |
+| LR_DATA_DIR            | str     | $HOME/Downloads        | Directory with LR vocab files         |
+| LR_SUBS_DIR            | str     | $HOME/Downloads        | Directory with LR excel subs          |
+| LR_FILES_RM            | str     | True                   | Remove processed LR files             |
+| PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
+| PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
+| PLOTS_SMOOTH           | bool    | True                   | Smoothing for cleaner visuals         |
+| PLOTS_HIDE_AGGR        | bool    | True                   | Hide aggregate plots until toggled    |
+| ANKI_MIN_COUNTS        | int,int | 0,0                    | Min counts for (known,learning) words |
+| ANKI_FILTERS           | str     | deck:漢字 is:suspended | Anki search query filters             |
+| ANKI_KANJI_FIELD       | str     | kanji                  | Anki field name containing kanji      |
+
+More variables [here](src/polyglotka/common/config.py).
 
 ## Run
 
 ### `polyglotka plots`
 
-Interactive plots open in your browser.
+Interactive plots will open in your browser.
 
 Zoom in, zoom out, toggle plots, download a picture, push every button in the corner, have fun.
 
@@ -84,7 +85,28 @@ On macOS, pipe the output directly into the clipboard if you are in a hurry:
 
 Then paste the search query into Anki.
 
-## P.S.
+### `polyglotka words`
 
-Go [support](https://www.languagereactor.com/pro-mode)
-LR devs.
+Just prints words.
+
+    polyglotka words --lang de --stage known | head -n 5
+
+Output:
+
+    Abend
+    Abrakadabra
+    Action
+    Adjutant
+    Adresse
+
+### `polyglotka subs`
+
+Convert excel subs to srt ~~to import them to Migaku~~.
+
+Here's how to export excel subs:
+
+<img src='media/export_subs_1.png' width='400'>
+
+<br>
+
+<img src='media/export_subs_2.png' width='400'>
