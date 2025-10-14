@@ -153,7 +153,7 @@ def create_srt_path(lr_subs_file: str, postfix: str) -> Path:
 
 def create_srt_file(srt_path: Path, srt_text: str) -> None:
     srt_path.write_text(srt_text, encoding='utf-8')
-    pprint(f'Created "{srt_path}".')
+    pprint(f'Added "{srt_path}".')
 
 
 def convert_excel_to_srt(lr_subs_file: str) -> None:
