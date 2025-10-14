@@ -34,7 +34,7 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 | Name                   | Type    | Default                | Description                           |
 | ---------------------- | ------- | ---------------------- | ------------------------------------- |
 | LR_DATA_DIR            | str     | $HOME/Downloads        | Directory with LR vocab files         |
-| LR_SUBS_DIR            | str     | $HOME/Downloads        | Directory with LR excel subs          |
+| LR_SUBS_DIR            | str     | $HOME/Downloads        | Directory with LR Excel subs          |
 | LR_FILES_RM            | str     | True                   | Remove processed LR files             |
 | PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
 | PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
@@ -101,9 +101,9 @@ Output:
 
 ### `polyglotka subs`
 
-Convert excel subs to srt ~~to import them to Migaku~~.
+Convert Excel subs to srt ~~to import them to Migaku~~.
 
-Here's how to export excel subs:
+Here's how to export Excel subs:
 
 <img src='media/export_subs_1.png' width='400'>
 
