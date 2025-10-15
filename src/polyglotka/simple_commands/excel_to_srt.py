@@ -9,12 +9,6 @@ from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.common.utils import remove_files_maybe
 
-MIN_DURATION_MS = 1000
-MAX_DURATION_MS = 6000
-BASE_DURATION_MS = 400
-MS_PER_CHAR = 65
-GAP_BETWEEN_SEGMENTS_MS = 50
-
 
 @dataclass(frozen=True)
 class SubtitleSegment:
@@ -63,8 +57,13 @@ def estimate_end(start_ms: int, text: str, next_start_ms: Optional[int]) -> int:
     timestamp exists, with a small configurable gap to avoid overlaps.
     """
 
+    MIN_DURATION_MS = 1000
+    MAX_DURATION_MS = 9**9
+    BASE_DURATION_MS = 400
+    GAP_BETWEEN_SEGMENTS_MS = 5
+
     readable_chars = len(_strip_newlines(text))
-    duration_ms = BASE_DURATION_MS + readable_chars * MS_PER_CHAR
+    duration_ms = BASE_DURATION_MS + readable_chars * config.LR_SUBS_MS_PER_CHAR
     duration_ms = max(MIN_DURATION_MS, min(duration_ms, MAX_DURATION_MS))
 
     proposed_end = start_ms + duration_ms

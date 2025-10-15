@@ -14,9 +14,12 @@ class _Config(BaseSettings):  # Singleton
 
     LR_DATA_DIR: str = Path.home() / 'Downloads'
     LR_DATA_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
+
     LR_SUBS_DIR: str = Path.home() / 'Downloads'
     LR_SUBS_FILES_GLOB_PATTERN: str = 'lln_excel_subs_*.xlsx'
-    LR_FILES_RM: bool = True  # tdc readme rename. and the rest
+    LR_SUBS_MS_PER_CHAR: int = 80
+
+    LR_FILES_RM: bool = True
 
     PLOTS_TITLE: str = 'Polyglotka Plots'
     PLOTS_BACKGROUND_COLOR: str = '#171717'
