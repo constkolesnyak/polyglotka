@@ -35,6 +35,7 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 | ---------------------- | ------- | ---------------------- | ------------------------------------- |
 | LR_DATA_DIR            | str     | $HOME/Downloads        | Directory with LR vocab files         |
 | LR_SUBS_DIR            | str     | $HOME/Downloads        | Directory with LR Excel subs          |
+| SRT_SUBS_TARGET_DIR    | str     | LR_SUBS_DIR            | Directory for generated srt subs      |
 | LR_FILES_RM            | str     | True                   | Remove processed LR files             |
 | PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
 | PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
@@ -44,7 +45,7 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 | ANKI_FILTERS           | str     | deck:漢字 is:suspended | Anki search query filters             |
 | ANKI_KANJI_FIELD       | str     | kanji                  | Anki field name containing kanji      |
 
-More variables [here](src/polyglotka/common/config.py).
+See more variables [here](src/polyglotka/common/config.py) or [here](#polyglotka-info).
 
 ## Run
 
@@ -112,3 +113,7 @@ Here's how to export Excel subs:
 <br>
 
 <img src='media/export_subs_2.png' width='400'>
+
+### `polyglotka info`
+
+Print config and other miscellaneous info.

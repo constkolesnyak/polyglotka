@@ -3,9 +3,11 @@ from enum import StrEnum, auto
 from typing import Any
 
 import fire  # type: ignore
+import icecream
 
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
+from polyglotka.importer import words_cache
 from polyglotka.plots.main import main as plots_main
 from polyglotka.simple_commands.excel_to_srt import main as excel_to_srt_main
 from polyglotka.simple_commands.kanji import main as kanji_main
@@ -13,6 +15,7 @@ from polyglotka.simple_commands.words_exporter import main as words_exporter_mai
 
 
 class Command(StrEnum):
+    INFO = auto()
     PLOTS = auto()
     KANJI = auto()
     ANKI = auto()
@@ -28,6 +31,9 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     config.override(config_upd)
 
     match command:
+        case Command.INFO:
+            icecream.ic(config.model_dump())
+            icecream.ic(words_cache.path())
         case Command.PLOTS:
             plots_main()
         case Command.KANJI:
