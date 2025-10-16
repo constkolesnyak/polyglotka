@@ -18,6 +18,7 @@ class _Config(BaseSettings):  # Singleton
     LR_SUBS_DIR: str = Path.home() / 'Downloads'
     LR_SUBS_FILES_GLOB_PATTERN: str = 'lln_excel_subs_*.xlsx'
     LR_SUBS_MS_PER_CHAR: int = 80
+    SRT_SUBS_TARGET_DIR: str = LR_SUBS_DIR
 
     LR_FILES_RM: bool = True
 
@@ -63,11 +64,11 @@ class _Config(BaseSettings):  # Singleton
             raise UserError(f'Invalid overriding vars: {", ".join(extra_vars)}')
 
         vars(self).update(config_upd)
-        self.validate_anki_min_counts(self.ANKI_MIN_COUNTS)
 
-        # import icecream
-        # icecream.ic(config.model_dump())
-        # exit(0)
+        self.validate_anki_min_counts(self.ANKI_MIN_COUNTS)
+        for directory in (self.LR_DATA_DIR, self.LR_SUBS_DIR, self.SRT_SUBS_TARGET_DIR):
+            if not Path(directory).exists():
+                raise UserError(f'Directory not found: {directory}')
 
 
 config = _Config()

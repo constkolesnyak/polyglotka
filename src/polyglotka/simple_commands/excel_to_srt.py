@@ -147,7 +147,7 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
 def create_srt_path(lr_subs_file: str, postfix: str) -> Path:
     lr_subs_file = Path(lr_subs_file)
     lr_subs_id: str = lr_subs_file.stem.split('_')[-1]
-    return lr_subs_file.with_name(f'{lr_subs_id}_{postfix}.srt')
+    return Path(config.SRT_SUBS_TARGET_DIR) / f'{lr_subs_id}_{postfix}.srt'
 
 
 def create_srt_file(srt_path: Path, srt_text: str) -> None:
@@ -177,16 +177,9 @@ def convert_excel_to_srt(lr_subs_file: str) -> None:
         )
 
 
-def find_lr_subs_files() -> list[Path]:
-    lr_subs_dir = Path(config.LR_SUBS_DIR)
-    if not lr_subs_dir.exists():
-        raise UserError(f'LR subs directory not found: {lr_subs_dir}')
-
-    return lr_subs_dir.glob(config.LR_SUBS_FILES_GLOB_PATTERN)
-
-
 def main() -> None:
-    lr_subs_files: list[Path] = find_lr_subs_files()
+    lr_subs_files: list[Path] = Path(config.LR_SUBS_DIR).glob(config.LR_SUBS_FILES_GLOB_PATTERN)
+
     for lr_subs_file in lr_subs_files:
         convert_excel_to_srt(lr_subs_file)
     remove_files_maybe(lr_subs_files)

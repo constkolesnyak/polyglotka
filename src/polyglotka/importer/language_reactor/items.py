@@ -32,16 +32,8 @@ def parse_saved_item(item_data: Dict[str, Any]) -> Optional[SavedItem]:
         return None
 
 
-def find_lr_files() -> list[Path]:
-    lr_data_dir = Path(config.LR_DATA_DIR)
-    if not lr_data_dir.exists():
-        raise UserError(f'LR data directory not found: {lr_data_dir}')
-
-    return lr_data_dir.glob(config.LR_DATA_FILES_GLOB_PATTERN)
-
-
 def import_lr_items() -> Generator[SavedItem, None, None]:
-    lr_files: list[Path] = find_lr_files()
+    lr_files: list[Path] = Path(config.LR_DATA_DIR).glob(config.LR_DATA_FILES_GLOB_PATTERN)
 
     with Progress(
         progress_type=ProgressType.BAR,
