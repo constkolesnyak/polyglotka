@@ -12,15 +12,15 @@ class _Config(BaseSettings):  # Singleton
     ENV_PREFIX: str = f'{APP_NAME.upper()}_'
     model_config = SettingsConfigDict(env_prefix=ENV_PREFIX, case_sensitive=True)
 
-    LR_DATA_DIR: str = Path.home() / 'Downloads'
-    LR_DATA_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
+    EXPORTED_FILES_DIR: str = Path.home() / 'Downloads'
+    LR_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'
+    MGK_FILES_GLOB_PATTERN: str = 'migaku_words_*.csv'
 
-    LR_SUBS_DIR: str = Path.home() / 'Downloads'
-    LR_SUBS_FILES_GLOB_PATTERN: str = 'lln_excel_subs_*.xlsx'
+    LR_SUBS_GLOB_PATTERN: str = 'lln_excel_subs_*.xlsx'
     LR_SUBS_MS_PER_CHAR: int = 80
-    SRT_SUBS_TARGET_DIR: str = LR_SUBS_DIR
+    SRT_SUBS_TARGET_DIR: str = EXPORTED_FILES_DIR
 
-    LR_FILES_RM: bool = True
+    PROCESSED_FILES_RM: bool = True
 
     PLOTS_TITLE: str = 'Polyglotka Plots'
     PLOTS_BACKGROUND_COLOR: str = '#171717'
@@ -66,7 +66,7 @@ class _Config(BaseSettings):  # Singleton
         vars(self).update(config_upd)
 
         self.validate_anki_min_counts(self.ANKI_MIN_COUNTS)
-        for directory in (self.LR_DATA_DIR, self.LR_SUBS_DIR, self.SRT_SUBS_TARGET_DIR):
+        for directory in (self.EXPORTED_FILES_DIR, self.SRT_SUBS_TARGET_DIR):
             if not Path(directory).exists():
                 raise UserError(f'Directory not found: {directory}')
 

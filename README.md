@@ -33,10 +33,9 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
 | Name                   | Type    | Default                | Description                           |
 | ---------------------- | ------- | ---------------------- | ------------------------------------- |
-| LR_DATA_DIR            | str     | $HOME/Downloads        | Directory with LR vocab files         |
-| LR_SUBS_DIR            | str     | $HOME/Downloads        | Directory with LR Excel subs          |
+| EXPORTED_FILES_DIR     | str     | $HOME/Downloads        | Directory with exported files         |
 | SRT_SUBS_TARGET_DIR    | str     | LR_SUBS_DIR            | Directory for generated srt subs      |
-| LR_FILES_RM            | str     | True                   | Remove processed LR files             |
+| PROCESSED_FILES_RM     | str     | True                   | Remove processed files                |
 | PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
 | PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
 | PLOTS_SMOOTH           | bool    | True                   | Smoothing for cleaner visuals         |

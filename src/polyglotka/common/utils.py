@@ -6,7 +6,7 @@ from polyglotka.common.console import pprint
 
 
 def remove_files_maybe(files: list[str] | list[Path]) -> None:
-    if config.LR_FILES_RM:
+    if config.PROCESSED_FILES_RM:
         for file in files:
             pprint(f'Removed "{file}".')
             Path(file).remove_p()

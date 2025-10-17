@@ -178,7 +178,7 @@ def convert_excel_to_srt(lr_subs_file: str) -> None:
 
 
 def main() -> None:
-    lr_subs_files: list[Path] = Path(config.LR_SUBS_DIR).glob(config.LR_SUBS_FILES_GLOB_PATTERN)
+    lr_subs_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN)
 
     for lr_subs_file in lr_subs_files:
         convert_excel_to_srt(lr_subs_file)
