@@ -10,7 +10,7 @@ from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.common.utils import remove_files_maybe
-from polyglotka.importer.language_reactor.items import LRSavedWord, import_lr_items
+from polyglotka.importer.language_reactor.importer import LRSavedWord, import_lr_items
 from polyglotka.importer.migaku.importer import MigakuItem, import_migaku_items
 
 
