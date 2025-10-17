@@ -28,11 +28,6 @@ class MigakuItem(BaseModel):
             IGNORED='SKIPPED',
         )[self.migaku_known_status]
 
-    @computed_field
-    @property
-    def key(self) -> str:
-        return self.word
-
 
 def import_migaku_items(migaku_files: list[Path]) -> Generator[MigakuItem, None, None]:
     if not migaku_files:

@@ -21,17 +21,16 @@ class LearningStage(StrEnum):
 
 
 class Word(BaseModel):
-    key: str
     word: str
     language: str = Field(validation_alias=AliasChoices('language', 'lang_code_g'))
     learning_stage: LearningStage
     date: datetime
 
     def __hash__(self) -> int:
-        return hash(self.key)
+        return hash(self.word)
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, Word) and self.key == other.key
+        return isinstance(other, Word) and self.word == other.word
 
     @model_validator(mode='before')
     @classmethod
