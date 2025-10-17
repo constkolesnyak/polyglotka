@@ -198,13 +198,13 @@ class SavedWordContext(BaseModel):
     phrase: PhraseExport
 
 
-class LearningStage(StrEnum):
+class LRLearningStage(StrEnum):
     LEARNING = 'LEARNING'
     KNOWN = 'KNOWN'
     SKIPPED = 'SKIPPED'
 
 
-class SavedWord(BaseModel):
+class LRSavedWord(BaseModel):
     """Saved word item for export."""
 
     key: str
@@ -212,7 +212,7 @@ class SavedWord(BaseModel):
     lang_code_g: str = Field(alias='langCode_G')
     context: Optional[SavedWordContext] = None
     tags: List[str] = Field(default_factory=list)
-    learning_stage: LearningStage = Field(alias='learningStage')
+    learning_stage: LRLearningStage = Field(alias='learningStage')
     word_translations_arr: Optional[List[str]] = Field(default=None, alias='wordTranslationsArr')
     translation_lang_code_g: str = Field(alias='translationLangCode_G')
     word_type: Literal['lemma', 'form'] = Field(alias='wordType')
@@ -233,7 +233,7 @@ class SavedPhraseContext(BaseModel):
     phrase: PhraseExport
 
 
-class SavedPhrase(BaseModel):
+class LRSavedPhrase(BaseModel):
     """Saved phrase item for export."""
 
     key: str
@@ -253,4 +253,4 @@ class SavedPhrase(BaseModel):
     dioco_freq: Optional[Union[int, str]] = Field(default=None, alias='diocoFreq')
 
 
-SavedItem = Union[SavedWord, SavedPhrase]
+LRSavedItem = Union[LRSavedWord, LRSavedPhrase]
