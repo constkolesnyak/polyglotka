@@ -14,12 +14,11 @@
 
 // Original: https://github.com/SirOlaf/migaku-anki-exporter/blob/main/inject_mm_exporter.js
 
-const statusMessageElemId = "mgkexporterStatusMessage";
-const STORENAME_MEDIACACHE = "mediacache"
-
+const statusMessageElemId = 'mgkexporterStatusMessage';
+const STORENAME_MEDIACACHE = 'mediacache';
 
 const decompress = async (blob) => {
-    const ds = new DecompressionStream("gzip");
+    const ds = new DecompressionStream('gzip');
     const decompressedStream = blob.stream().pipeThrough(ds);
     const reader = decompressedStream.getReader();
     const chunks = [];
@@ -39,15 +38,16 @@ const decompress = async (blob) => {
     return res;
 };
 
-
-
 const fetchFirebaseLocalStorageDbRows = () => {
     return new Promise((resolve) => {
-        console.log("Fetching firebase database")
+        console.log('Fetching firebase database');
         const dbRequest = indexedDB.open('firebaseLocalStorageDb', 1);
         dbRequest.onsuccess = function (event) {
             const idb = dbRequest.result;
-            const transaction = idb.transaction('firebaseLocalStorage', 'readonly');
+            const transaction = idb.transaction(
+                'firebaseLocalStorage',
+                'readonly'
+            );
             const objectStore = transaction.objectStore('firebaseLocalStorage');
             objectStore.getAll().onsuccess = (event) => {
                 resolve(event.target.result);
@@ -58,25 +58,30 @@ const fetchFirebaseLocalStorageDbRows = () => {
 };
 
 const fetchGoogleAuth = async (firebaseApiKey, refreshToken) => {
-    const url = `https://securetoken.googleapis.com/v1/token?key=${firebaseApiKey}`
-    const resp = await fetch(url, {method: "post", body: new URLSearchParams({
-        "grant_type": "refresh_token",
-        "refresh_token": refreshToken,
-    })});
+    const url = `https://securetoken.googleapis.com/v1/token?key=${firebaseApiKey}`;
+    const resp = await fetch(url, {
+        method: 'post',
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+        }),
+    });
     return await resp.json();
 };
 
 const fetchAccessToken = async () => {
     const firebaseInfo = (await fetchFirebaseLocalStorageDbRows())[0].value;
-    const auth = await fetchGoogleAuth(firebaseInfo.apiKey, firebaseInfo.stsTokenManager.refreshToken);
-    let exp = Date.now() + ((Number(auth.expires_in) - 5) * 1000);
-    return {token: auth.access_token, expiresAt: exp};
+    const auth = await fetchGoogleAuth(
+        firebaseInfo.apiKey,
+        firebaseInfo.stsTokenManager.refreshToken
+    );
+    let exp = Date.now() + (Number(auth.expires_in) - 5) * 1000;
+    return { token: auth.access_token, expiresAt: exp };
 };
-
 
 const fetchRawSrsDb = () => {
     return new Promise((resolve) => {
-        console.log("Fetching raw database")
+        console.log('Fetching raw database');
         const dbRequest = indexedDB.open('srs', 1);
         dbRequest.onsuccess = function (event) {
             const idb = dbRequest.result;
@@ -90,7 +95,9 @@ const fetchRawSrsDb = () => {
                     const cursor = cursorRequest.result;
                     const data = cursor.value.data;
 
-                    const blob = new Blob([data], { type: "application/octet-stream" });
+                    const blob = new Blob([data], {
+                        type: 'application/octet-stream',
+                    });
                     decompress(blob).then((decompressedDb) => {
                         resolve(decompressedDb);
                     });
@@ -104,27 +111,28 @@ const fetchRawSrsDb = () => {
 
 const fetchMigakuSrsMedia = async (path, auth) => {
     if (auth.expiresAt < Date.now()) {
-        console.log("Refreshing auth token")
+        console.log('Refreshing auth token');
         const newAuth = await fetchAccessToken();
         auth.token = newAuth.token;
         auth.expiresAt = newAuth.expiresAt;
     }
-    const baseUrl = "https://file-sync-worker-api.migaku.com/data/"
+    const baseUrl = 'https://file-sync-worker-api.migaku.com/data/';
     const url = baseUrl + path;
     const resp = await fetch(url, {
         headers: {
-            "Authorization": "Bearer " + auth.token,
+            Authorization: 'Bearer ' + auth.token,
         },
-        cache: "force-cache",
+        cache: 'force-cache',
     });
     if (resp.status !== 200) return null;
     return await resp.blob();
 };
 
 const queryMigakuSelectedLanguage = () => {
-    return document.querySelector("main.MIGAKU-SRS").getAttribute("data-mgk-lang-selected");
-}
-
+    return document
+        .querySelector('main.MIGAKU-SRS')
+        .getAttribute('data-mgk-lang-selected');
+};
 
 const openSrsDb = (SQL) => {
     return new Promise((resolve) => {
@@ -132,16 +140,16 @@ const openSrsDb = (SQL) => {
             resolve(new SQL.Database(raw));
         });
     });
-}
+};
 
 const openMediaChacheIdb = () => {
     return new Promise((resolve) => {
-        const dbRequest = indexedDB.open("unofficialmgkexporterMediaDb", 1);
+        const dbRequest = indexedDB.open('unofficialmgkexporterMediaDb', 1);
         dbRequest.onupgradeneeded = (ev) => {
             const idb = ev.target.result;
             if (!idb.objectStoreNames.contains(STORENAME_MEDIACACHE)) {
                 idb.createObjectStore(STORENAME_MEDIACACHE, {
-                    keyPath: "key",
+                    keyPath: 'key',
                     autoIncrement: false,
                 });
             }
@@ -155,18 +163,19 @@ const openMediaChacheIdb = () => {
 
 const mediaCachePutBlob = (db, key, blob) => {
     return new Promise((resolve) => {
-        db.transaction(STORENAME_MEDIACACHE, "readwrite")
+        db
+            .transaction(STORENAME_MEDIACACHE, 'readwrite')
             .objectStore(STORENAME_MEDIACACHE)
-            .add({key: key, blob: blob})
-            .onsuccess = (ev) => {
-                resolve(ev.target.result);
-            }
+            .add({ key: key, blob: blob }).onsuccess = (ev) => {
+            resolve(ev.target.result);
+        };
     });
 };
 
 const mediaCacheGetByKeyOrNull = (db, key) => {
     return new Promise((resolve) => {
-        const req = db.transaction(STORENAME_MEDIACACHE, "readonly")
+        const req = db
+            .transaction(STORENAME_MEDIACACHE, 'readonly')
             .objectStore(STORENAME_MEDIACACHE)
             .get(key);
         req.onsuccess = (ev) => {
@@ -178,20 +187,19 @@ const mediaCacheGetByKeyOrNull = (db, key) => {
         };
         req.onerror = (_) => {
             resolve(null);
-        }
-    })
+        };
+    });
 };
 
 const mediaCacheCheckHasKey = async (db, key) => {
-    return (await mediaCacheGetByKeyOrNull(db, key) !== null);
-}
-
+    return (await mediaCacheGetByKeyOrNull(db, key)) !== null;
+};
 
 const convDbRowToObject = (columnNames, rowVals) => {
     const row = {};
     let i = 0;
     for (const colName of columnNames) {
-        if (colName == "del") {
+        if (colName == 'del') {
             row[colName] = rowVals[i] !== 0;
         } else {
             row[colName] = rowVals[i];
@@ -210,22 +218,29 @@ const convDbRowsToObjectArray = (dbRes) => {
 };
 
 const fetchDbRowsAsObjectArray = (db, query, args) => {
-    return convDbRowsToObjectArray(
-        db.exec(query, args)[0]
-    );
-}
-
+    return convDbRowsToObjectArray(db.exec(query, args)[0]);
+};
 
 const fetchDeckList = (db) => {
-    return fetchDbRowsAsObjectArray(db, "SELECT id, lang, name, del FROM deck;");
+    return fetchDbRowsAsObjectArray(
+        db,
+        'SELECT id, lang, name, del FROM deck;'
+    );
 };
 
 const fetchDeckCards = (db, deckId) => {
-    return fetchDbRowsAsObjectArray(db, "SELECT id, mod, del, cardTypeId, created, primaryField, secondaryField, fields, words, due, interval, factor, lastReview, reviewCount, passCount, failCount, suspended FROM card WHERE deckId=?", [deckId]);
+    return fetchDbRowsAsObjectArray(
+        db,
+        'SELECT id, mod, del, cardTypeId, created, primaryField, secondaryField, fields, words, due, interval, factor, lastReview, reviewCount, passCount, failCount, suspended FROM card WHERE deckId=?',
+        [deckId]
+    );
 };
 
 const fetchCardTypes = (db) => {
-    let rows = fetchDbRowsAsObjectArray(db, "SELECT id, del, lang, name, config FROM card_type");
+    let rows = fetchDbRowsAsObjectArray(
+        db,
+        'SELECT id, del, lang, name, config FROM card_type'
+    );
     const res = new Map();
     for (const row of rows) {
         row.config = JSON.parse(row.config);
@@ -235,13 +250,19 @@ const fetchCardTypes = (db) => {
 };
 
 const fetchReviewHistory = (db) => {
-    return fetchDbRowsAsObjectArray(db, "SELECT id, mod, del, day, interval, factor, cardId, duration, type, lapseIndex FROM review");
+    return fetchDbRowsAsObjectArray(
+        db,
+        'SELECT id, mod, del, day, interval, factor, cardId, duration, type, lapseIndex FROM review'
+    );
 };
 
 const fetchWordListForLang = (db, lang) => {
-    return fetchDbRowsAsObjectArray(db, "SELECT dictForm, secondary, partOfSpeech, language, mod, serverMod, del, knownStatus, hasCard, tracked FROM WordList WHERE language=?", [lang]);
-}
-
+    return fetchDbRowsAsObjectArray(
+        db,
+        'SELECT dictForm, secondary, partOfSpeech, language, mod, serverMod, del, knownStatus, hasCard, tracked FROM WordList WHERE language=?',
+        [lang]
+    );
+};
 
 const initNewAnkiSqlDb = (SQL) => {
     const db = new SQL.Database();
@@ -326,7 +347,7 @@ const ankiDbPutCol = (db, usedCardTypes) => {
     const cardTypeIdsToModelIds = new Map();
     usedCardTypes.forEach((x) => {
         if (!x) {
-            window.alert("Bad card type entry");
+            window.alert('Bad card type entry');
             throw Error();
         }
         cardTypeIdsToModelIds.set(x.id, Date.now());
@@ -342,7 +363,7 @@ const ankiDbPutCol = (db, usedCardTypes) => {
         const fields = [];
         const pushField = (name) => {
             fields.push({
-                font: "Arial",
+                font: 'Arial',
                 media: [],
                 name: name,
                 ord: fields.length,
@@ -354,13 +375,13 @@ const ankiDbPutCol = (db, usedCardTypes) => {
 
         let template = null;
         switch (cardType.name) {
-            case "Sentence":
+            case 'Sentence':
                 cardType.config.fields.forEach((x) => pushField(x.name));
                 template = {
-                    name: "Basic",
-                    qfmt: "{{Word}}<br>{{Sentence}}",
+                    name: 'Basic',
+                    qfmt: '{{Word}}<br>{{Sentence}}',
                     did: null,
-                    bafmt: "",
+                    bafmt: '',
                     afmt: `
                         {{FrontSide}}<hr id="answer"><br>
                         {{Sentence Audio}}<br>
@@ -372,45 +393,48 @@ const ankiDbPutCol = (db, usedCardTypes) => {
                         <div>{{Notes}}</div>
                     `,
                     ord: 0,
-                    bqfmt: "",
+                    bqfmt: '',
                 };
                 break;
-            case "Word":
-            case "Audio Sentence":
-            case "Audio Word":
+            case 'Word':
+            case 'Audio Sentence':
+            case 'Audio Word':
             default:
                 debugger;
-                window.alert("Unimplemented card type: " + cardType.toString());
+                window.alert('Unimplemented card type: ' + cardType.toString());
                 throw Error();
         }
 
         if (!template) {
-            window.alert("Internal error: Did not produce a card template for " + cardType.toString())
-            throw Error("Bad template")
+            window.alert(
+                'Internal error: Did not produce a card template for ' +
+                    cardType.toString()
+            );
+            throw Error('Bad template');
         }
 
         models[cardTypeIdsToModelIds.get(cardType.id)] = {
-            css: "",
+            css: '',
             did: 1,
             flds: fields,
             id: cardTypeIdsToModelIds.get(cardType.id),
-            latexPost: "",
-            latexPre: "",
+            latexPost: '',
+            latexPre: '',
             mod: Math.floor(Date.now() / 1000),
-            name: "base",
+            name: 'base',
             req: [], // unused
             sortf: 0,
             tags: [],
             tmpls: [template],
             type: 0, // standard
             usn: -1,
-            vers: []
+            vers: [],
         };
     }
 
     const decks = {
         1: {
-            name: "Default",
+            name: 'Default',
             extendRev: 10,
             usn: -1,
             collapsed: false,
@@ -424,8 +448,8 @@ const ankiDbPutCol = (db, usedCardTypes) => {
             conf: 1,
             id: 1,
             mod: Date.now(),
-            desc: "",
-        }
+            desc: '',
+        },
     };
 
     const dconf = {
@@ -441,7 +465,7 @@ const ankiDbPutCol = (db, usedCardTypes) => {
             },
             maxTaken: 60,
             mod: 0,
-            name: "Default",
+            name: 'Default',
             new: {
                 bury: true,
                 delays: [1, 10],
@@ -463,27 +487,24 @@ const ankiDbPutCol = (db, usedCardTypes) => {
             },
             timer: 0,
             usn: -1,
-        }
+        },
     };
 
-    db.run(
-        "INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            1, // id
-            Math.floor(Date.now() / 1000), // crt
-            Date.now(), // mod
-            Date.now(), // scm
-            11, // ver
-            0, // dty
-            0, // usn
-            Date.now(), // ls
-            JSON.stringify(conf), // conf
-            JSON.stringify(models), // models
-            JSON.stringify(decks), // decks
-            JSON.stringify(dconf), // dconf
-            "{}", // tags
-        ]
-    )
+    db.run('INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        1, // id
+        Math.floor(Date.now() / 1000), // crt
+        Date.now(), // mod
+        Date.now(), // scm
+        11, // ver
+        0, // dty
+        0, // usn
+        Date.now(), // ls
+        JSON.stringify(conf), // conf
+        JSON.stringify(models), // models
+        JSON.stringify(decks), // decks
+        JSON.stringify(dconf), // dconf
+        '{}', // tags
+    ]);
     return cardTypeIdsToModelIds;
 };
 
@@ -492,10 +513,14 @@ const setStatus = (message) => {
     document.getElementById(statusMessageElemId).innerText = message;
 };
 
-const mediaCacheGatherAllMedia = async (mediacacheDb, cardsByCardType, cardTypes) => {
+const mediaCacheGatherAllMedia = async (
+    mediacacheDb,
+    cardsByCardType,
+    cardTypes
+) => {
     return new Promise(async (resolve, reject) => {
         const pathSet = new Set();
-        setStatus("Preparing media paths")
+        setStatus('Preparing media paths');
         for (const typeKey of cardsByCardType.keys()) {
             const cardList = cardsByCardType.get(typeKey);
             const cardType = cardTypes.get(typeKey);
@@ -507,24 +532,24 @@ const mediaCacheGatherAllMedia = async (mediacacheDb, cardsByCardType, cardTypes
                     const fieldInfo = defCardFields[fieldIdx];
                     fieldIdx++;
                     switch (fieldInfo.type) {
-                        case "IMAGE":
-                        case "AUDIO":
-                        case "AUDIO_LONG":
+                        case 'IMAGE':
+                        case 'AUDIO':
+                        case 'AUDIO_LONG':
                             if (x.trim().length === 0) return;
                             pathSet.add(x.slice(5));
-                            break
+                            break;
                         default:
                             break;
                     }
                 };
                 handleField(card.primaryField);
                 handleField(card.secondaryField);
-                for (const part of card.fields.split("\u001f")) {
+                for (const part of card.fields.split('\u001f')) {
                     handleField(part);
                 }
             }
         }
-        setStatus("Beginning media download");
+        setStatus('Beginning media download');
 
         let dlCount = 0;
         let queue = Array.from(pathSet);
@@ -535,26 +560,31 @@ const mediaCacheGatherAllMedia = async (mediacacheDb, cardsByCardType, cardTypes
             while (queue.length > 0) {
                 const path = queue.shift();
 
-                let extension = "." + path.split(".").pop();
+                let extension = '.' + path.split('.').pop();
                 if (extension.length >= 7) {
-                    extension = "";
+                    extension = '';
                 }
-                const zipPath = Array.from(
-                    new Uint8Array(
-                        await window.crypto.subtle.digest(
-                            "SHA-1",
-                            new TextEncoder().encode(path)
+                const zipPath =
+                    Array.from(
+                        new Uint8Array(
+                            await window.crypto.subtle.digest(
+                                'SHA-1',
+                                new TextEncoder().encode(path)
+                            )
                         )
                     )
-                ).map((b) => b.toString(16).padStart(2, "0")).join("") + extension;
+                        .map((b) => b.toString(16).padStart(2, '0'))
+                        .join('') + extension;
 
                 if (await mediaCacheCheckHasKey(mediacacheDb, zipPath)) {
                     dlCount++;
-                    setStatus(`${dlCount}/${fullMediaCount}\n From cache ${path}`);
+                    setStatus(
+                        `${dlCount}/${fullMediaCount}\n From cache ${path}`
+                    );
                     mediaMap.set(path, zipPath);
                     continue;
                 }
-                console.log(`STARTING ${path}`)
+                console.log(`STARTING ${path}`);
                 let blob = await fetchMigakuSrsMedia(path, accessToken);
                 dlCount++;
                 setStatus(`${dlCount}/${fullMediaCount}\n Downloaded ${path}`);
@@ -572,34 +602,52 @@ const mediaCacheGatherAllMedia = async (mediacacheDb, cardsByCardType, cardTypes
         for (let i = 0; i < workerCount; i++) {
             workerPromises.push(workerProc());
         }
-        Promise.all(workerPromises).then(() => {
-            resolve(mediaMap);
-        }, () => {
-            reject();
-        });
+        Promise.all(workerPromises).then(
+            () => {
+                resolve(mediaMap);
+            },
+            () => {
+                reject();
+            }
+        );
     });
 };
 
-const ankiDbFillCards = async (db, mediacacheDb, zipHandle, cardsByCardType, cardTypes, cardTypeIdsToModelIds, shouldIncludeMedia, keepSyntax) => {
+const ankiDbFillCards = async (
+    db,
+    mediacacheDb,
+    zipHandle,
+    cardsByCardType,
+    cardTypes,
+    cardTypeIdsToModelIds,
+    shouldIncludeMedia,
+    keepSyntax
+) => {
     const invertedMediaMap = new Map();
     let curMediaNum = 0;
     const zipMedia = async (dirtyPath) => {
         if (dirtyPath.trim().length === 0) return null;
         const path = dirtyPath.slice(5);
-        let extension = "." + path.split(".").pop();
+        let extension = '.' + path.split('.').pop();
         if (extension.length >= 7) {
-            extension = "";
+            extension = '';
         }
-        const zipPath = Array.from(
-            new Uint8Array(
-                await window.crypto.subtle.digest(
-                    "SHA-1",
-                    new TextEncoder().encode(path)
+        const zipPath =
+            Array.from(
+                new Uint8Array(
+                    await window.crypto.subtle.digest(
+                        'SHA-1',
+                        new TextEncoder().encode(path)
+                    )
                 )
             )
-        ).map((b) => b.toString(16).padStart(2, "0")).join("") + extension;
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('') + extension;
         if (!invertedMediaMap.has(zipPath)) {
-            const mediaBlob = await mediaCacheGetByKeyOrNull(mediacacheDb, zipPath);
+            const mediaBlob = await mediaCacheGetByKeyOrNull(
+                mediacacheDb,
+                zipPath
+            );
             if (!mediaBlob) {
                 return null;
             } else {
@@ -611,8 +659,8 @@ const ankiDbFillCards = async (db, mediacacheDb, zipHandle, cardsByCardType, car
         return zipPath;
     };
 
-    setStatus("Converting cards")
-    db.run("BEGIN TRANSACTION;");
+    setStatus('Converting cards');
+    db.run('BEGIN TRANSACTION;');
     for (const typeKey of cardsByCardType.keys()) {
         const modelId = cardTypeIdsToModelIds.get(typeKey);
         const cardList = cardsByCardType.get(typeKey);
@@ -626,89 +674,101 @@ const ankiDbFillCards = async (db, mediacacheDb, zipHandle, cardsByCardType, car
                 if (fieldIdx >= defCardFields.length) return;
                 const fieldInfo = defCardFields[fieldIdx];
                 switch (fieldInfo.type) {
-                    case "SYNTAX":
+                    case 'SYNTAX':
                         if (keepSyntax) {
                             fieldsList.push(x);
                         } else {
                             // TODO: Maybe translate syntax into proper ruby text?
-                            fieldsList.push(x.replaceAll(/\[.*?\]/g, "").replaceAll("{", "").replaceAll("}", ""));
+                            fieldsList.push(
+                                x
+                                    .replaceAll(/\[.*?\]/g, '')
+                                    .replaceAll('{', '')
+                                    .replaceAll('}', '')
+                            );
                         }
                         break;
-                    case "TEXT":
+                    case 'TEXT':
                         fieldsList.push(x);
                         break;
-                    case "IMAGE":
+                    case 'IMAGE':
                         if (shouldIncludeMedia) {
                             const zipPath = await zipMedia(x);
                             if (zipPath) {
                                 fieldsList.push(`<img src="${zipPath}>`);
                             } else {
-                                fieldsList.push("");
+                                fieldsList.push('');
                             }
                         } else {
-                            fieldsList.push("");
+                            fieldsList.push('');
                         }
                         break;
-                    case "AUDIO":
-                    case "AUDIO_LONG":
+                    case 'AUDIO':
+                    case 'AUDIO_LONG':
                         if (shouldIncludeMedia) {
                             const zipPath = await zipMedia(x);
                             if (zipPath) {
                                 fieldsList.push(`[sound:${zipPath}]`);
                             } else {
-                                fieldsList.push("");
+                                fieldsList.push('');
                             }
                         } else {
-                            fieldsList.push("");
+                            fieldsList.push('');
                         }
                         break;
                     default:
-                        window.alert("Unable to handle card field definition: " + fieldInfo.toString());
+                        window.alert(
+                            'Unable to handle card field definition: ' +
+                                fieldInfo.toString()
+                        );
                         break;
                 }
-            }
+            };
             await pushField(card.primaryField);
             await pushField(card.secondaryField);
-            for (const part of card.fields.split("\u001f")) {
+            for (const part of card.fields.split('\u001f')) {
                 await pushField(part);
             }
             while (fieldsList.length < defCardFields.length) {
-                fieldsList.push("");
+                fieldsList.push('');
             }
 
-            const fieldsStr = fieldsList.join("\x1F");
+            const fieldsStr = fieldsList.join('\x1F');
             const fieldsChecksum = parseInt(
                 Array.from(
                     new Uint8Array(
                         await window.crypto.subtle.digest(
-                            "SHA-1",
+                            'SHA-1',
                             new TextEncoder().encode(fieldsStr)
                         )
                     )
-                ).map((b) => b.toString(16).padStart(2, "0")).join("").substring(0, 8),
+                )
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('')
+                    .substring(0, 8),
                 16
             );
 
             db.run(
-                "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                'INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     card.id, // id,
                     crypto.randomUUID(), // guid
                     modelId, // mid
                     card.mod, // mod
                     -1, // usn
-                    "", // tags
+                    '', // tags
                     fieldsStr, // flds
                     i, // sfld
                     fieldsChecksum, // csum
                     0, // flags unused
-                    "" // data unused
+                    '', // data unused
                 ]
-            )
+            );
 
-            const cardTypeNum = card.reviewCount == 0 ? 0 : (card.interval > 1 ? 2 : 1);
+            const cardTypeNum =
+                card.reviewCount == 0 ? 0 : card.interval > 1 ? 2 : 1;
             const cardQueueNum = cardTypeNum;
-            let due = (cardTypeNum > 0) ? (card.due - card.lastReview) : i;
+            let due = cardTypeNum > 0 ? card.due - card.lastReview : i;
             if (cardTypeNum == 1) {
                 // learning
                 let date = new Date();
@@ -717,12 +777,12 @@ const ankiDbFillCards = async (db, mediacacheDb, zipHandle, cardsByCardType, car
             }
 
             if (due < 0) {
-                window.alert("Negative due date detected")
+                window.alert('Negative due date detected');
                 debugger;
             }
 
             db.run(
-                "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                'INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     card.id, // id
                     card.id, // nid
@@ -741,24 +801,29 @@ const ankiDbFillCards = async (db, mediacacheDb, zipHandle, cardsByCardType, car
                     0, // odue
                     0, // odid
                     0, // flags
-                    "", // data unused
+                    '', // data unused
                 ]
-            )
+            );
             i += 1;
         }
     }
-    db.run("COMMIT");
+    db.run('COMMIT');
 
-    zipHandle.file("media", JSON.stringify(Object.fromEntries(new Map(
-       Array.from(invertedMediaMap, x => x.reverse())
-    ))));
+    zipHandle.file(
+        'media',
+        JSON.stringify(
+            Object.fromEntries(
+                new Map(Array.from(invertedMediaMap, (x) => x.reverse()))
+            )
+        )
+    );
 };
 
 const ankiDbFillRevlog = (db, reviewHistory, cards) => {
     const revIntervals = new Map();
     reviewHistory.sort((a, b) => a.id - b.id);
 
-    db.run("BEGIN TRANSACTION;");
+    db.run('BEGIN TRANSACTION;');
     for (const review of reviewHistory) {
         let ease = 0;
         // 0 == learn?
@@ -771,7 +836,7 @@ const ankiDbFillRevlog = (db, reviewHistory, cards) => {
         } else if (review.type == 2) {
             ease = 3; // ok (review) // TODO
         } else {
-            window.alert("Unknown review type: " + review);
+            window.alert('Unknown review type: ' + review);
             debugger;
         }
 
@@ -780,27 +845,30 @@ const ankiDbFillRevlog = (db, reviewHistory, cards) => {
             prevInterval = revIntervals.get(review.cardId);
         }
 
-        db.run(
-            "INSERT INTO revlog VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                review.id, // id
-                review.cardId, // cid
-                -1, // usn
-                ease, // ease
-                Math.floor(review.interval), // ivl
-                prevInterval, // lastIvl
-                Math.floor(review.factor * 1000), // factor
-                Math.min(review.duration, 60) * 1000, // time
-                review.type === 0 ? 0 : 1, // type 0=learn 1=review
-            ]
-        );
+        db.run('INSERT INTO revlog VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            review.id, // id
+            review.cardId, // cid
+            -1, // usn
+            ease, // ease
+            Math.floor(review.interval), // ivl
+            prevInterval, // lastIvl
+            Math.floor(review.factor * 1000), // factor
+            Math.min(review.duration, 60) * 1000, // time
+            review.type === 0 ? 0 : 1, // type 0=learn 1=review
+        ]);
         revIntervals.set(review.cardId, Math.floor(review.interval));
     }
-    db.run("COMMIT");
+    db.run('COMMIT');
 };
 
-
-const doExportDeck = async (SQL, db, deckId, deckName, shouldIncludeMedia, keepSyntax) => {
+const doExportDeck = async (
+    SQL,
+    db,
+    deckId,
+    deckName,
+    shouldIncludeMedia,
+    keepSyntax
+) => {
     const cards = fetchDeckCards(db, deckId).filter((x) => !x.del);
     const cardTypes = fetchCardTypes(db);
 
@@ -812,11 +880,17 @@ const doExportDeck = async (SQL, db, deckId, deckName, shouldIncludeMedia, keepS
         cardsByCardType.get(card.cardTypeId).push(card);
     }
 
-    const usedCardTypes = Array.from(cardsByCardType.keys()).map((x) => cardTypes.get(x));
+    const usedCardTypes = Array.from(cardsByCardType.keys()).map((x) =>
+        cardTypes.get(x)
+    );
 
     const mediacacheDb = await openMediaChacheIdb();
     if (shouldIncludeMedia) {
-        await mediaCacheGatherAllMedia(mediacacheDb, cardsByCardType, cardTypes);
+        await mediaCacheGatherAllMedia(
+            mediacacheDb,
+            cardsByCardType,
+            cardTypes
+        );
     }
 
     let zip = new JSZip();
@@ -825,20 +899,29 @@ const doExportDeck = async (SQL, db, deckId, deckName, shouldIncludeMedia, keepS
     const reviewHistory = fetchReviewHistory(db).filter((x) => !x.del);
     ankiDbFillRevlog(ankiDb, reviewHistory, cards);
     const cardTypeIdsToModelIds = ankiDbPutCol(ankiDb, usedCardTypes);
-    await ankiDbFillCards(ankiDb, mediacacheDb, zip, cardsByCardType, cardTypes, cardTypeIdsToModelIds, shouldIncludeMedia, keepSyntax);
+    await ankiDbFillCards(
+        ankiDb,
+        mediacacheDb,
+        zip,
+        cardsByCardType,
+        cardTypes,
+        cardTypeIdsToModelIds,
+        shouldIncludeMedia,
+        keepSyntax
+    );
 
     const exportedDb = ankiDb.export();
-    zip.file("collection.anki2", exportedDb);
+    zip.file('collection.anki2', exportedDb);
     setStatus(`Constructing apkg file (be patient)`);
-    zip.generateAsync({type: "blob"}).then((zipBlob) => {
-        setStatus("Done");
+    zip.generateAsync({ type: 'blob' }).then((zipBlob) => {
+        setStatus('Done');
 
         const url = URL.createObjectURL(zipBlob);
 
-        const dlElem = document.createElement("a");
+        const dlElem = document.createElement('a');
         dlElem.href = url;
         dlElem.download = `Migaku - ${deckName}.apkg`;
-        dlElem.style = "display: none;";
+        dlElem.style = 'display: none;';
         document.body.appendChild(dlElem);
 
         dlElem.click();
@@ -857,20 +940,20 @@ const doExportWordlist = async (db, lang) => {
     for (const word of wordList) {
         if (word.del) continue;
         switch (word.knownStatus) {
-            case "UNKNOWN":
+            case 'UNKNOWN':
                 unknown.push(word);
                 break;
-            case "IGNORED":
+            case 'IGNORED':
                 ignored.push(word);
                 break;
-            case "LEARNING":
+            case 'LEARNING':
                 learning.push(word);
                 break;
-            case "KNOWN":
+            case 'KNOWN':
                 known.push(word);
                 break;
             default:
-                console.log("UNKNOWN WORD STATUS: " + word.knownStatus);
+                console.log('UNKNOWN WORD STATUS: ' + word.knownStatus);
                 break;
         }
         if (word.tracked) {
@@ -880,101 +963,120 @@ const doExportWordlist = async (db, lang) => {
 
     const escape = (x) => {
         return '"' + x.replaceAll('"', '""') + '"';
-    }
+    };
 
     const arrToCsv = (arr) => {
-        const header = "dictForm,secondary,hasCard,mod,language";
+        const header = 'dictForm,secondary,hasCard,mod,language';
         const rows = new Array();
         for (const word of arr) {
-            rows.push(`${escape(word.dictForm)},${escape(word.secondary)},${word.hasCard},${word.mod},${word.language}`);
+            rows.push(
+                `${escape(word.dictForm)},${escape(word.secondary)},${
+                    word.hasCard
+                },${word.mod},${word.language}`
+            );
         }
-        return header + "\n" + rows.join("\n");
+        return header + '\n' + rows.join('\n');
     };
 
     let zip = new JSZip();
-    zip.file("unknown.csv", arrToCsv(unknown));
-    zip.file("ignored.csv", arrToCsv(ignored));
-    zip.file("learning.csv", arrToCsv(learning));
-    zip.file("known.csv", arrToCsv(known));
-    zip.file("tracked.csv", arrToCsv(tracked));
-    zip.generateAsync({type: "blob"}).then((zipBlob) => {
+    zip.file('unknown.csv', arrToCsv(unknown));
+    zip.file('ignored.csv', arrToCsv(ignored));
+    zip.file('learning.csv', arrToCsv(learning));
+    zip.file('known.csv', arrToCsv(known));
+    zip.file('tracked.csv', arrToCsv(tracked));
+    zip.generateAsync({ type: 'blob' }).then((zipBlob) => {
         const url = URL.createObjectURL(zipBlob);
 
-        const dlElem = document.createElement("a");
+        const dlElem = document.createElement('a');
         dlElem.href = url;
         dlElem.download = `wordlists.zip`;
-        dlElem.style = "display: none;";
+        dlElem.style = 'display: none;';
         document.body.appendChild(dlElem);
 
         dlElem.click();
     });
 };
 
-
 function waitForMigaku(cb) {
     const observer = new MutationObserver((_, observer) => {
-        if (document.querySelector(".HomeDecks")) {
+        if (document.querySelector('.HomeDecks')) {
             observer.disconnect();
             cb();
         }
     });
-    observer.observe(document, {childList: true, subtree: true});
-};
-
+    observer.observe(document, { childList: true, subtree: true });
+}
 
 let srsDb = null;
 
 const inject = async () => {
-    const SQL = await initSqlJs({ locateFile: () => GM_getResourceURL("sql_wasm") });
+    const SQL = await initSqlJs({
+        locateFile: () => GM_getResourceURL('sql_wasm'),
+    });
 
     srsDb = await openSrsDb(SQL);
     const migakuLang = queryMigakuSelectedLanguage();
 
-    const div = document.querySelector(".HomeDecks").appendChild(document.createElement("div"));
+    const div = document
+        .querySelector('.HomeDecks')
+        .appendChild(document.createElement('div'));
 
-    const deckSelect = div.appendChild(document.createElement("select"));
+    const deckSelect = div.appendChild(document.createElement('select'));
     for (const deck of fetchDeckList(srsDb)) {
         if (deck.lang !== migakuLang) continue;
         if (deck.del) continue;
-        const option = deckSelect.appendChild(document.createElement("option"));
+        const option = deckSelect.appendChild(document.createElement('option'));
         option.innerText = deck.name;
         option.value = deck.id;
     }
 
-    const exportButton = div.appendChild(document.createElement("button"));
-    exportButton.innerText = "Export deck";
+    const exportButton = div.appendChild(document.createElement('button'));
+    exportButton.innerText = 'Export deck';
 
-    div.appendChild(document.createElement("br"));
-    const includeMediaCheckbox = div.appendChild(document.createElement("input"))
-    includeMediaCheckbox.type = "checkbox"
-    includeMediaCheckbox.id = "mgkexporterCheckbox";
-    const includeMediaLabel = div.appendChild(document.createElement("label"));
+    div.appendChild(document.createElement('br'));
+    const includeMediaCheckbox = div.appendChild(
+        document.createElement('input')
+    );
+    includeMediaCheckbox.type = 'checkbox';
+    includeMediaCheckbox.id = 'mgkexporterCheckbox';
+    const includeMediaLabel = div.appendChild(document.createElement('label'));
     includeMediaLabel.for = includeMediaCheckbox.id;
-    includeMediaLabel.innerText = "Include media (this may take a very long time and could fail)"
+    includeMediaLabel.innerText =
+        'Include media (this may take a very long time and could fail)';
 
-    div.appendChild(document.createElement("br"));
-    const keepSyntaxCheckbox = div.appendChild(document.createElement("input"))
-    keepSyntaxCheckbox.type = "checkbox"
-    keepSyntaxCheckbox.id = "mgkexporterKeepsyntaxCheckbox";
-    const keepSyntaxLabel = div.appendChild(document.createElement("label"));
+    div.appendChild(document.createElement('br'));
+    const keepSyntaxCheckbox = div.appendChild(document.createElement('input'));
+    keepSyntaxCheckbox.type = 'checkbox';
+    keepSyntaxCheckbox.id = 'mgkexporterKeepsyntaxCheckbox';
+    const keepSyntaxLabel = div.appendChild(document.createElement('label'));
     keepSyntaxLabel.for = includeMediaCheckbox.id;
-    keepSyntaxLabel.innerText = "Keep migaku syntax (your note type can display furigana with it)"
+    keepSyntaxLabel.innerText =
+        'Keep migaku syntax (your note type can display furigana with it)';
 
     exportButton.onclick = async () => {
         const deckId = deckSelect.options[deckSelect.selectedIndex].value;
         const deckName = deckSelect.options[deckSelect.selectedIndex].innerText;
-        await doExportDeck(SQL, srsDb, deckId, deckName, includeMediaCheckbox.checked, keepSyntaxCheckbox.checked);
+        await doExportDeck(
+            SQL,
+            srsDb,
+            deckId,
+            deckName,
+            includeMediaCheckbox.checked,
+            keepSyntaxCheckbox.checked
+        );
     };
 
-    const statusMessageElem = div.appendChild(document.createElement("div"));
+    const statusMessageElem = div.appendChild(document.createElement('div'));
     statusMessageElem.id = statusMessageElemId;
 
-    const exportWordlistButton = div.appendChild(document.createElement("button"));
-    exportWordlistButton.innerText = "Export word statuses";
+    const exportWordlistButton = div.appendChild(
+        document.createElement('button')
+    );
+    exportWordlistButton.innerText = 'Export word statuses';
     exportWordlistButton.onclick = async () => {
         await doExportWordlist(srsDb, migakuLang);
     };
-}
+};
 
 waitForMigaku(() => {
     inject();
