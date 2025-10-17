@@ -928,9 +928,15 @@ const doExportDeck = async (
     });
 };
 
+//tdc
+
+//todo buttons dont show up when i have 0 cards. but i want to be able to export word list even when i dont have cards
+
 const doExportWordlist = async (db, lang) => {
     const wordList = fetchWordListForLang(db, lang);
+    const filename = 'migaku_items_' + queryMigakuSelectedLanguage() + '.csv'; //todo the name of the csv file to download
 
+    //todo don't split into arrays, just use 1 array
     const unknown = new Array();
     const ignored = new Array();
     const learning = new Array();
@@ -956,6 +962,7 @@ const doExportWordlist = async (db, lang) => {
                 console.log('UNKNOWN WORD STATUS: ' + word.knownStatus);
                 break;
         }
+        //todo tracked words must be in the same array as the others. and they must have knownStatus=='TRACKED'
         if (word.tracked) {
             tracked.push(word);
         }
@@ -966,6 +973,7 @@ const doExportWordlist = async (db, lang) => {
     };
 
     const arrToCsv = (arr) => {
+        //todo include knownStatus as a column
         const header = 'dictForm,secondary,hasCard,mod,language';
         const rows = new Array();
         for (const word of arr) {
@@ -978,6 +986,7 @@ const doExportWordlist = async (db, lang) => {
         return header + '\n' + rows.join('\n');
     };
 
+    //todo i dont need zip. just download the 1 csv file
     let zip = new JSZip();
     zip.file('unknown.csv', arrToCsv(unknown));
     zip.file('ignored.csv', arrToCsv(ignored));
