@@ -1017,13 +1017,13 @@ const inject = async (injectionTarget) => {
     });
 
     srsDb = await openSrsDb(SQL);
-    const migakuLang = queryMigakuSelectedLanguage();
+    const initialLang = queryMigakuSelectedLanguage();
 
     const div = injectionTarget.appendChild(document.createElement('div'));
 
     const deckSelect = div.appendChild(document.createElement('select'));
     for (const deck of fetchDeckList(srsDb)) {
-        if (deck.lang !== migakuLang) continue;
+        if (deck.lang !== initialLang) continue;
         if (deck.del) continue;
         const option = deckSelect.appendChild(document.createElement('option'));
         option.innerText = deck.name;
@@ -1074,7 +1074,7 @@ const inject = async (injectionTarget) => {
     );
     exportWordlistButton.innerText = 'Export words';
     exportWordlistButton.onclick = async () => {
-        await doExportWordlist(srsDb, migakuLang);
+        await doExportWordlist(srsDb, queryMigakuSelectedLanguage());
     };
 };
 
