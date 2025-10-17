@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -9,12 +10,14 @@ from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.common.utils import remove_files_maybe
-from polyglotka.importer.language_reactor.items import SavedWord, import_lr_items
-from polyglotka.importer.language_reactor.structures import (
-    LearningStage as LRLearningStage,
-)
+from polyglotka.importer.language_reactor.items import LRSavedWord, import_lr_items
+from polyglotka.importer.migaku.importer import MigakuItem, import_migaku_items
 
-LearningStage = LRLearningStage
+
+class LearningStage(StrEnum):
+    LEARNING = 'LEARNING'
+    KNOWN = 'KNOWN'
+    SKIPPED = 'SKIPPED'
 
 
 class Word(BaseModel):
@@ -45,16 +48,20 @@ class Word(BaseModel):
 def import_words() -> set[Word]:
     from polyglotka.importer import words_cache
 
-    lr_files: list[Path] = Path(config.LR_DATA_DIR).glob(config.LR_DATA_FILES_GLOB_PATTERN)
-    if not lr_files:
-        lr_files_not_found = f'LR files "{config.LR_DATA_FILES_GLOB_PATTERN}" are not found in directory: "{config.LR_DATA_DIR}"'
+    migaku_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.MGK_FILES_GLOB_PATTERN)
+    lr_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_FILES_GLOB_PATTERN)
+
+    if not (migaku_files + lr_files):
+        files_not_found = f'Neither LR files "{config.LR_FILES_GLOB_PATTERN}" nor Migaku files "{config.MGK_FILES_GLOB_PATTERN}" are found in directory: "{config.EXPORTED_FILES_DIR}"'
         if not words_cache.exists():
-            raise UserError(f'{lr_files_not_found}\n  Cache also not found: "{words_cache.path()}"')
-        pprint(f'{lr_files_not_found}. Using cache.')
+            raise UserError(f'{files_not_found}\n  Cache also not found: "{words_cache.path()}"')
+        pprint(f'{files_not_found}.\nUsing cache.')
         return words_cache.read()
 
-    all_words: list[Word] = [
-        Word(**item.model_dump()) for item in import_lr_items() if isinstance(item, SavedWord)
+    lr_items: list[LRSavedWord] = [i for i in import_lr_items(lr_files) if isinstance(i, LRSavedWord)]
+    migaku_items: list[MigakuItem] = list(import_migaku_items(migaku_files))
+    all_words: list[Word] = list(words_cache.read()) + [
+        Word(**item.model_dump()) for item in (migaku_items + lr_items)
     ]
 
     unique_words: set[Word] = set()
@@ -64,7 +71,6 @@ def import_words() -> set[Word]:
             unique_words.add(word)
 
     words_cache.write(unique_words)
-    pprint(f'Cached {len(unique_words)} words.')
     remove_files_maybe(lr_files)
 
     return unique_words
