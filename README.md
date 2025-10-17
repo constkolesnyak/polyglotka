@@ -1,5 +1,7 @@
 # Polyglotka
 
+Export data from Language Reactor and Migaku, convert subs, track your language acquisition progress with interactive plots and kanji tables.
+
 ## Name
 
 _Polyglotka_ is a [Slovak word](https://www.google.com/search?q=%22polyglotka%22+site%3A*.sk)
