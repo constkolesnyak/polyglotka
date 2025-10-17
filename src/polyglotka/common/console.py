@@ -32,7 +32,7 @@ class Progress(BaseModel):
     color: str = COLOR
 
     def __enter__(self) -> Self:
-        self.text += '...'
+        self.text = f'{self.text:<21}'
 
         match self.progress_type:
             case ProgressType.BAR:
@@ -42,14 +42,14 @@ class Progress(BaseModel):
                     BarColumn(complete_style=self.color),
                     TextColumn(f'[{self.color}]| {{task.completed:,}} / {{task.total:,}} ' + self.postfix),
                     console=_console,
-                    transient=True,
+                    # transient=True,
                 )
             case ProgressType.TEXT:
                 self.rich_progress = RichProgress(
                     SpinnerColumn(style=self.color),
                     TextColumn(f'[{self.color}]{{task.description}}'),
                     console=_console,
-                    transient=True,
+                    # transient=True,
                 )
             case _:
                 self.rich_progress = RichProgress()
