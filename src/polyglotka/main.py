@@ -21,6 +21,7 @@ class Command(StrEnum):
     ANKI = auto()
     WORDS = auto()
     SUBS = auto()
+    CLEAR_CACHE = 'clear-cache'
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -44,6 +45,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             words_exporter_main()
         case Command.SUBS:
             excel_to_srt_main()
+        case Command.CLEAR_CACHE:
+            words_cache.clear()
 
 
 def main() -> None:

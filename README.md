@@ -116,3 +116,7 @@ Here's how to export Excel subs:
 ### `polyglotka info`
 
 Print config and other miscellaneous info.
+
+### `polyglotka clear-cache`
+
+Clear cache.

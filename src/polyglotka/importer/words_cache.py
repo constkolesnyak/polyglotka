@@ -1,10 +1,10 @@
 import json
-from typing import Iterable
 
 from path import Path
 from platformdirs import user_cache_dir
 
 from polyglotka.common.config import config
+from polyglotka.common.console import pprint
 from polyglotka.importer.words import Word
 
 
@@ -21,14 +21,22 @@ def exists() -> bool:
 def read() -> set[Word]:
     from polyglotka.importer.words import Word
 
-    return {Word.model_validate(word) for word in json.loads(path().read_text())}
+    if exists():
+        return {Word.model_validate(word) for word in json.loads(path().read_text())}
+    return set()
 
 
-def write(lr_words: Iterable[Word]) -> None:
+def write(words: set[Word]) -> None:
     path().write_text(
         json.dumps(
-            [json.loads(word.model_dump_json()) for word in lr_words],
+            [json.loads(word.model_dump_json()) for word in words],
             indent=2,
             ensure_ascii=False,
         )
     )
+    pprint(f'Cached {len(words)} words.')
+
+
+def clear() -> None:
+    path().remove_p()
+    pprint(f'Cache is cleared.')
