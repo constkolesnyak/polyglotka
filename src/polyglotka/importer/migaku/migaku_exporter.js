@@ -928,97 +928,90 @@ const doExportDeck = async (
     });
 };
 
-//tdc
-
-//todo buttons dont show up when i have 0 cards. but i want to be able to export word list even when i dont have cards
-
 const doExportWordlist = async (db, lang) => {
     const wordList = fetchWordListForLang(db, lang);
-    const filename = 'migaku_items_' + queryMigakuSelectedLanguage() + '.csv'; //todo the name of the csv file to download
+    const filename = `migaku_words_${lang}.csv`;
 
-    //todo don't split into arrays, just use 1 array
-    const unknown = new Array();
-    const ignored = new Array();
-    const learning = new Array();
-    const known = new Array();
-    const tracked = new Array();
-
+    const words = new Array();
     for (const word of wordList) {
         if (word.del) continue;
-        switch (word.knownStatus) {
-            case 'UNKNOWN':
-                unknown.push(word);
-                break;
-            case 'IGNORED':
-                ignored.push(word);
-                break;
-            case 'LEARNING':
-                learning.push(word);
-                break;
-            case 'KNOWN':
-                known.push(word);
-                break;
-            default:
-                console.log('UNKNOWN WORD STATUS: ' + word.knownStatus);
-                break;
-        }
-        //todo tracked words must be in the same array as the others. and they must have knownStatus=='TRACKED'
-        if (word.tracked) {
-            tracked.push(word);
-        }
+        const normalizedStatus = word.tracked ? 'TRACKED' : word.knownStatus;
+        words.push({
+            dictForm: word.dictForm ?? '',
+            secondary: word.secondary ?? '',
+            hasCard: Boolean(word.hasCard),
+            mod: word.mod ?? '',
+            language: word.language ?? '',
+            knownStatus: normalizedStatus ?? '',
+        });
     }
 
-    const escape = (x) => {
-        return '"' + x.replaceAll('"', '""') + '"';
+    const escape = (value) => {
+        const normalized =
+            value === undefined || value === null ? '' : String(value);
+        return '"' + normalized.replaceAll('"', '""') + '"';
     };
 
-    const arrToCsv = (arr) => {
-        //todo include knownStatus as a column
-        const header = 'dictForm,secondary,hasCard,mod,language';
+    const wordsToCsv = (arr) => {
+        const header = 'dictForm,secondary,hasCard,mod,language,knownStatus';
         const rows = new Array();
         for (const word of arr) {
             rows.push(
                 `${escape(word.dictForm)},${escape(word.secondary)},${
                     word.hasCard
-                },${word.mod},${word.language}`
+                },${escape(word.mod)},${escape(word.language)},${escape(
+                    word.knownStatus
+                )}`
             );
         }
         return header + '\n' + rows.join('\n');
     };
 
-    //todo i dont need zip. just download the 1 csv file
-    let zip = new JSZip();
-    zip.file('unknown.csv', arrToCsv(unknown));
-    zip.file('ignored.csv', arrToCsv(ignored));
-    zip.file('learning.csv', arrToCsv(learning));
-    zip.file('known.csv', arrToCsv(known));
-    zip.file('tracked.csv', arrToCsv(tracked));
-    zip.generateAsync({ type: 'blob' }).then((zipBlob) => {
-        const url = URL.createObjectURL(zipBlob);
-
-        const dlElem = document.createElement('a');
-        dlElem.href = url;
-        dlElem.download = `wordlists.zip`;
-        dlElem.style = 'display: none;';
-        document.body.appendChild(dlElem);
-
-        dlElem.click();
+    const csvContent = wordsToCsv(words);
+    const blob = new Blob([csvContent], {
+        type: 'text/csv;charset=utf-8;',
     });
+    const url = URL.createObjectURL(blob);
+
+    const dlElem = document.createElement('a');
+    dlElem.href = url;
+    dlElem.download = filename;
+    dlElem.style = 'display: none;';
+    document.body.appendChild(dlElem);
+
+    dlElem.click();
+    URL.revokeObjectURL(url);
+};
+
+const findExportInjectionTarget = () => {
+    return (
+        document.querySelector('.HomeDecks') ||
+        document.querySelector('.HomeDecksEmpty') ||
+        document.querySelector('.HomeDecks__empty') ||
+        document.querySelector('.Home__Content') ||
+        document.querySelector('.Home')
+    );
 };
 
 function waitForMigaku(cb) {
+    const tryInject = () => {
+        const target = findExportInjectionTarget();
+        if (!target) return false;
+        cb(target);
+        return true;
+    };
+
+    if (tryInject()) return;
+
     const observer = new MutationObserver((_, observer) => {
-        if (document.querySelector('.HomeDecks')) {
-            observer.disconnect();
-            cb();
-        }
+        if (tryInject()) observer.disconnect();
     });
     observer.observe(document, { childList: true, subtree: true });
 }
 
 let srsDb = null;
 
-const inject = async () => {
+const inject = async (injectionTarget) => {
     const SQL = await initSqlJs({
         locateFile: () => GM_getResourceURL('sql_wasm'),
     });
@@ -1026,9 +1019,7 @@ const inject = async () => {
     srsDb = await openSrsDb(SQL);
     const migakuLang = queryMigakuSelectedLanguage();
 
-    const div = document
-        .querySelector('.HomeDecks')
-        .appendChild(document.createElement('div'));
+    const div = injectionTarget.appendChild(document.createElement('div'));
 
     const deckSelect = div.appendChild(document.createElement('select'));
     for (const deck of fetchDeckList(srsDb)) {
@@ -1081,12 +1072,12 @@ const inject = async () => {
     const exportWordlistButton = div.appendChild(
         document.createElement('button')
     );
-    exportWordlistButton.innerText = 'Export word statuses';
+    exportWordlistButton.innerText = 'Export words';
     exportWordlistButton.onclick = async () => {
         await doExportWordlist(srsDb, migakuLang);
     };
 };
 
-waitForMigaku(() => {
-    inject();
+waitForMigaku((target) => {
+    inject(target);
 });
