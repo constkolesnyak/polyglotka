@@ -70,6 +70,6 @@ def import_words() -> set[Word]:
             unique_words.add(word)
 
     words_cache.write(unique_words)
-    remove_files_maybe(lr_files)
+    remove_files_maybe(lr_files + migaku_files)
 
     return unique_words
