@@ -1,7 +1,5 @@
 # Polyglotka
 
-Visualize [Language Reactor](https://languagereactor.com) data with interactive plots and kanji tables to track your language acquisition progress.
-
 ## Name
 
 _Polyglotka_ is a [Slovak word](https://www.google.com/search?q=%22polyglotka%22+site%3A*.sk)
@@ -15,12 +13,24 @@ Use [pipx](https://pipx.pypa.io):
 
     pipx install git+https://github.com/constkolesnyak/polyglotka
 
-## Export Language Reactor Data
+## Export Data
 
-On the Language Reactor website, open your [saved items](https://www.languagereactor.com/saved-items),
-click _Export_, choose _JSON_, _All-All-Any-Any_, and click _Export_ again.
+### From Language Reactor
+
+1. On the Language Reactor website, open your [saved items](https://www.languagereactor.com/saved-items).
+2. Click _Export_, choose _JSON_, _All-All-Any-Any_, and click _Export_ again.
 
 <img src='media/export_json_window.png' width='400'>
+
+### From Migaku
+
+1. Add
+   [Migaku Memory Exporter](https://github.com/constkolesnyak/migaku-memory-exporter/blob/main/migaku_exporter.js)
+   to your userscript manager.
+2. Go to [Migaku Memory](https://study.migaku.com).
+3. Select a language, click _Export words_, repeat for every language you study.
+
+<img src='media/migaku_export_words.jpeg' width='400'>
 
 ## Configure
 
@@ -34,7 +44,7 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 | Name                   | Type    | Default                | Description                           |
 | ---------------------- | ------- | ---------------------- | ------------------------------------- |
 | EXPORTED_FILES_DIR     | str     | $HOME/Downloads        | Directory with exported files         |
-| SRT_SUBS_TARGET_DIR    | str     | LR_SUBS_DIR            | Directory for generated srt subs      |
+| SRT_SUBS_TARGET_DIR    | str     | LR_SUBS_DIR            | Directory for generated SRT subs      |
 | PROCESSED_FILES_RM     | str     | True                   | Remove processed files                |
 | PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
 | PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
@@ -101,15 +111,15 @@ Output:
 
 ### `polyglotka subs`
 
-Convert Excel subs to srt ~~to import them to Migaku~~.
+Convert LR's Excel subs to SRT to import them to Migaku.
 
 Here's how to export Excel subs:
 
-<br>
+1.
 
 <img src='media/export_subs_1.png' width='400'>
 
-<br>
+2.
 
 <img src='media/export_subs_2.png' width='400'>
 
