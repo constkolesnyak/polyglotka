@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Migaku deck exporter
+// @name        Migaku Memory Exporter
 // @namespace   Violentmonkey Scripts
 // @match       https://study.migaku.com/*
 // @grant       GM_getResourceURL
