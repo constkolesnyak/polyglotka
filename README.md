@@ -56,9 +56,7 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
 See more variables [here](src/polyglotka/common/config.py) or [here](#polyglotka-info).
 
-## Run
-
-### `polyglotka plots`
+## `polyglotka plots`
 
 Interactive plots will open in your browser.
 
@@ -66,7 +64,7 @@ Zoom in, zoom out, toggle plots, download a picture, push every button in the co
 
 <img src='media/plots.png' width='700'>
 
-### `polyglotka kanji`
+## `polyglotka kanji`
 
 Pipe the TSV output into [this function](https://github.com/constkolesnyak/dotfiles/blob/3b225ee11388b1c6074caee54ba37e9bb5dc87d2/zsh/.functions.zsh#L1)
 from my dotfiles to open VS Code with [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv):
@@ -77,7 +75,7 @@ The table shows kanji ordered by the number of known words, then learning words.
 
 <img src='media/kanji.png' width='700'>
 
-### `polyglotka anki`
+## `polyglotka anki`
 
 Generate the search query for kanji with the highest counts of known and learning words. `ANKI_MIN_COUNTS` trims the less frequent ones.
 
@@ -95,7 +93,7 @@ On macOS, pipe the output directly into the clipboard if you are in a hurry:
 
 Then paste the search query into Anki.
 
-### `polyglotka words`
+## `polyglotka words`
 
 Just prints words.
 
@@ -109,7 +107,7 @@ Output:
     Adjutant
     Adresse
 
-### `polyglotka subs`
+## `polyglotka subs`
 
 Convert LR's Excel subs to SRT to import them to Migaku.
 
@@ -123,10 +121,10 @@ Here's how to export Excel subs:
 
 <img src='media/export_subs_2.png' width='400'>
 
-### `polyglotka info`
+## `polyglotka info`
 
 Print config and other miscellaneous info.
 
-### `polyglotka clear-cache`
+## `polyglotka clear-cache`
 
 Clear cache.
