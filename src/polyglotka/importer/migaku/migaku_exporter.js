@@ -883,10 +883,10 @@ const doExportWordlist = async (db, lang) => {
     }
 
     const arrToCsv = (arr) => {
-        const header = "dictForm,secondary,hasCard";
+        const header = "dictForm,secondary,hasCard,mod,language";
         const rows = new Array();
         for (const word of arr) {
-            rows.push(`${escape(word.dictForm)},${escape(word.secondary)},${word.hasCard}`);
+            rows.push(`${escape(word.dictForm)},${escape(word.secondary)},${word.hasCard},${word.mod},${word.language}`);
         }
         return header + "\n" + rows.join("\n");
     };
