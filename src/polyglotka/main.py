@@ -34,7 +34,7 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
     match command:
         case Command.INFO:
             icecream.ic(config.model_dump())
-            icecream.ic(words_cache.path())
+            icecream.ic(words_cache.path().parent)
         case Command.PLOTS:
             plots_main()
         case Command.KANJI:
