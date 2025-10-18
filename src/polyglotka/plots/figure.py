@@ -53,6 +53,10 @@ def create_trace(
     learning_stage: str,
     words: Iterable[Word],
 ) -> go.Scatter:
+    words = list(words)
+    if not words:
+        return go.Scatter(name='')
+
     x_data, y_data = create_points(words)
     name = f'{language.upper()} - {learning_stage.capitalize()}'
 
