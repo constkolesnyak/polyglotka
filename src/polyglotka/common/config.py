@@ -1,6 +1,7 @@
 from typing import Any
 
 from path import Path
+from platformdirs import user_cache_dir
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +12,9 @@ class _Config(BaseSettings):  # Singleton
     APP_NAME: str = 'polyglotka'
     ENV_PREFIX: str = f'{APP_NAME.upper()}_'
     model_config = SettingsConfigDict(env_prefix=ENV_PREFIX, case_sensitive=True)
+
+    CACHE_DIR: Path = Path(user_cache_dir(APP_NAME)).mkdir_p()
+    CACHE_WORDS: Path = CACHE_DIR / 'words.json'
 
     EXPORTED_FILES_DIR: str = Path.home() / 'Downloads'
     LR_FILES_GLOB_PATTERN: str = 'lln_json_items_*.json'

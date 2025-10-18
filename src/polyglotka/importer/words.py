@@ -52,8 +52,8 @@ def import_words() -> set[Word]:
 
     if not (migaku_files + lr_files):
         files_not_found = f'Neither LR files "{config.LR_FILES_GLOB_PATTERN}" nor Migaku files "{config.MGK_FILES_GLOB_PATTERN}" are found in directory: "{config.EXPORTED_FILES_DIR}"'
-        if not words_cache.exists():
-            raise UserError(f'{files_not_found}\n  Cache also not found: "{words_cache.path()}"')
+        if not config.CACHE_WORDS.exists():
+            raise UserError(f'{files_not_found}\n  Cache also not found: "{config.CACHE_WORDS}"')
         pprint(f'{files_not_found}.\nUsing cache.')
         return words_cache.read()
 
