@@ -15,6 +15,6 @@ def main() -> None:
     exporting_words = (
         w.word
         for w in imported_words
-        if w.learning_stage == (config.STAGE.upper() or 'KNOWN') and w.language == config.LANG
+        if config.STAGE.upper() in (w.learning_stage, '') and w.language == config.LANG
     )
     print('\n'.join(sorted(exporting_words)))
