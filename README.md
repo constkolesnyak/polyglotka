@@ -20,19 +20,22 @@ Use [pipx](https://pipx.pypa.io):
 ### From Language Reactor
 
 1. On the Language Reactor website, open your [saved items](https://www.languagereactor.com/saved-items).
+
 2. Click _Export_, choose _JSON_, _All-All-Any-Any_, and click _Export_ again.
 
-<img src='media/export_json_window.png' width='400'>
+   <img src='media/export_json_window.png' width='400'>
 
 ### From Migaku
 
 1. Add
    [Migaku Memory Exporter](https://github.com/constkolesnyak/migaku-memory-exporter/blob/main/migaku_exporter.js)
    to your userscript manager.
+
 2. Go to [Migaku Memory](https://study.migaku.com).
+
 3. Select a language, click _Export words_, repeat for every language you study.
 
-<img src='media/migaku_export_words.jpeg' width='400'>
+   <img src='media/migaku_export_words.jpeg' width='400'>
 
 ## Configure
 
@@ -115,11 +118,11 @@ Convert LR's Excel subs to SRT to import them to Migaku.
 
 Here's how to export Excel subs:
 
-1.
+#### 1.
 
 <img src='media/export_subs_1.png' width='400'>
 
-2.
+#### 2.
 
 <img src='media/export_subs_2.png' width='400'>
 
