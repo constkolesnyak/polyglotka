@@ -35,7 +35,9 @@ class _Config(BaseSettings):  # Singleton
     ANKI_MIN_COUNTS: tuple[int, int] | str = (0, 0)
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'
     ANKI_KANJI_FIELD: str = 'kanji'
+
     ANKI_KNOWN_MORPHS_DIR: str = EXPORTED_FILES_DIR
+    ANKI_KNOWN_MORPHS_AUTO_SAVE_LANGS: str = ''  # Example: 'ja,de'
 
     STAGE: str = ''
     LANG: str = ''

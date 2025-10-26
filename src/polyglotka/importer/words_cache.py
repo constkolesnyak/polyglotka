@@ -3,6 +3,7 @@ import json
 from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.importer.words import Word
+from polyglotka.simple_commands.words_exporter import save_anki_known_morphs
 
 
 def read() -> set[Word]:
@@ -22,6 +23,9 @@ def write(words: set[Word]) -> None:
         )
     )
     pprint(f'Cached {len(words)} words.')
+
+    for lang in config.ANKI_KNOWN_MORPHS_AUTO_SAVE_LANGS.split(','):
+        save_anki_known_morphs(lang, words)
 
 
 def clear() -> None:

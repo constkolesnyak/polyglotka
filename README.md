@@ -115,7 +115,10 @@ Output:
 
 ## `polyglotka morphs`
 
-Save known morphs.
+Save known morphs in the
+[AnkiMorphs format](https://mortii.github.io/anki-morphs/user_guide/usage/known-morphs-exporter.html?highlight=known_#resulting-file).
+
+    polyglotka morphs --lang de
 
 ## `polyglotka subs`
 
