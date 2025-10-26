@@ -121,6 +121,8 @@ Output:
 Import exported LR/Migaku files, cache words, and save known morphs in the
 [AnkiMorphs format](https://mortii.github.io/anki-morphs/user_guide/usage/known-morphs-exporter.html?highlight=known_#resulting-file). Usually this command runs automatically.
 
+    polyglotka import --known-morphs-save-langs ja,de
+
 ### `polyglotka subs`
 
 Convert LR's Excel subs to SRT to import them to Migaku.
