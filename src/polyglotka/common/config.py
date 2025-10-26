@@ -36,8 +36,8 @@ class _Config(BaseSettings):  # Singleton
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'
     ANKI_KANJI_FIELD: str = 'kanji'
 
-    ANKI_KNOWN_MORPHS_DIR: str = EXPORTED_FILES_DIR
-    ANKI_KNOWN_MORPHS_AUTO_SAVE_LANGS: str = ''  # Example: 'ja,de'
+    KNOWN_MORPHS_DIR: str = EXPORTED_FILES_DIR
+    KNOWN_MORPHS_SAVE_LANGS: str = ''  # Example: 'ja,de'
 
     STAGE: str = ''
     LANG: str = ''
@@ -73,7 +73,7 @@ class _Config(BaseSettings):  # Singleton
         vars(self).update(config_upd)
 
         self.validate_anki_min_counts(self.ANKI_MIN_COUNTS)
-        for directory in (self.EXPORTED_FILES_DIR, self.SRT_SUBS_TARGET_DIR, self.ANKI_KNOWN_MORPHS_DIR):
+        for directory in (self.EXPORTED_FILES_DIR, self.SRT_SUBS_TARGET_DIR, self.KNOWN_MORPHS_DIR):
             if not Path(directory).is_dir():
                 raise UserError(f'Directory not found: {directory}')
 

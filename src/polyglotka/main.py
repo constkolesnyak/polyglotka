@@ -8,13 +8,11 @@ import icecream
 from polyglotka.common.config import config
 from polyglotka.common.exceptions import UserError
 from polyglotka.importer import words_cache
+from polyglotka.importer.words import import_words
 from polyglotka.plots.main import main as plots_main
 from polyglotka.simple_commands.excel_to_srt import main as excel_to_srt_main
 from polyglotka.simple_commands.kanji import main as kanji_main
-from polyglotka.simple_commands.words_exporter import (
-    print_words,
-    save_anki_known_morphs,
-)
+from polyglotka.simple_commands.words_exporter import print_words
 
 
 class Command(StrEnum):
@@ -25,7 +23,7 @@ class Command(StrEnum):
     WORDS = auto()
     SUBS = auto()
     CLEAR_CACHE = 'clear-cache'
-    MORPHS = auto()
+    IMPORT = auto()
 
 
 def entrypoint(command: Command, **config_upd: Any) -> None:
@@ -46,8 +44,8 @@ def entrypoint(command: Command, **config_upd: Any) -> None:
             kanji_main(anki=True)
         case Command.WORDS:
             print_words()
-        case Command.MORPHS:
-            save_anki_known_morphs()
+        case Command.IMPORT:
+            import_words(cache_allowed=False)
         case Command.SUBS:
             excel_to_srt_main()
         case Command.CLEAR_CACHE:

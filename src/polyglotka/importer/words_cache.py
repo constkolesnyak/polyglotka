@@ -24,7 +24,7 @@ def write(words: set[Word]) -> None:
     )
     pprint(f'Cached {len(words)} words.')
 
-    for lang in config.ANKI_KNOWN_MORPHS_AUTO_SAVE_LANGS.split(','):
+    for lang in config.KNOWN_MORPHS_SAVE_LANGS.split(','):
         save_anki_known_morphs(lang, words)
 
 

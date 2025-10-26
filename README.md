@@ -46,23 +46,26 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 
 ### Variables
 
-| Name                   | Type    | Default                | Description                           |
-| ---------------------- | ------- | ---------------------- | ------------------------------------- |
-| EXPORTED_FILES_DIR     | str     | $HOME/Downloads        | Directory with exported files         |
-| ANKI_KNOWN_MORPHS_DIR  | str     | EXPORTED_FILES_DIR     | Directory for saving known morphs     |
-| SRT_SUBS_TARGET_DIR    | str     | EXPORTED_FILES_DIR     | Directory for generated SRT subs      |
-| PROCESSED_FILES_RM     | str     | True                   | Remove processed files                |
-| PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
-| PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
-| PLOTS_SMOOTH           | bool    | True                   | Smoothing for cleaner visuals         |
-| PLOTS_HIDE_AGGR        | bool    | True                   | Hide aggregate plots until toggled    |
-| ANKI_MIN_COUNTS        | int,int | 0,0                    | Min counts for (known,learning) words |
-| ANKI_FILTERS           | str     | deck:漢字 is:suspended | Anki search query filters             |
-| ANKI_KANJI_FIELD       | str     | kanji                  | Anki field name containing kanji      |
+| Name                    | Type    | Default                | Description                           |
+| ----------------------- | ------- | ---------------------- | ------------------------------------- |
+| EXPORTED_FILES_DIR      | str     | $HOME/Downloads        | Directory with exported files         |
+| SRT_SUBS_TARGET_DIR     | str     | EXPORTED_FILES_DIR     | Directory for generated SRT subs      |
+| KNOWN_MORPHS_DIR        | str     | EXPORTED_FILES_DIR     | Directory for saving known morphs     |
+| KNOWN_MORPHS_SAVE_LANGS | str,... | ''                     | Autosave known morphs for these langs |
+| PROCESSED_FILES_RM      | str     | True                   | Remove processed files                |
+| PLOTS_TITLE             | str     | Polyglotka Plots       | Title of the plots                    |
+| PLOTS_BACKGROUND_COLOR  | str     | \#171717               | Background color (dark by default)    |
+| PLOTS_SMOOTH            | bool    | True                   | Smoothing for cleaner visuals         |
+| PLOTS_HIDE_AGGR         | bool    | True                   | Hide aggregate plots until toggled    |
+| ANKI_MIN_COUNTS         | int,int | 0,0                    | Min counts for (known,learning) words |
+| ANKI_FILTERS            | str     | deck:漢字 is:suspended | Anki search query filters             |
+| ANKI_KANJI_FIELD        | str     | kanji                  | Anki field name containing kanji      |
 
 See more variables [here](src/polyglotka/common/config.py) or [here](#polyglotka-info).
 
-## `polyglotka plots`
+## Run
+
+### `polyglotka plots`
 
 Interactive plots will open in your browser.
 
@@ -70,7 +73,7 @@ Zoom in, zoom out, toggle plots, download a picture, push every button in the co
 
 <img src='media/plots.png' width='700'>
 
-## `polyglotka kanji`
+### `polyglotka kanji`
 
 Pipe the TSV output into [this function](https://github.com/constkolesnyak/dotfiles/blob/3b225ee11388b1c6074caee54ba37e9bb5dc87d2/zsh/.functions.zsh#L1)
 from my dotfiles to open VS Code with [Rainbow CSV](https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv):
@@ -81,7 +84,7 @@ The table shows kanji ordered by the number of known words, then learning words.
 
 <img src='media/kanji.png' width='700'>
 
-## `polyglotka anki`
+### `polyglotka anki`
 
 Generate the search query for kanji with the highest counts of known and learning words. `ANKI_MIN_COUNTS` trims the less frequent ones.
 
@@ -99,9 +102,9 @@ On macOS, pipe the output directly into the clipboard if you are in a hurry:
 
 Then paste the search query into Anki.
 
-## `polyglotka words`
+### `polyglotka words`
 
-Just prints words.
+Just print words.
 
     polyglotka words --lang de --stage known | head -n 5
 
@@ -113,14 +116,12 @@ Output:
     Adjutant
     Adresse
 
-## `polyglotka morphs`
+### `polyglotka import`
 
-Save known morphs in the
-[AnkiMorphs format](https://mortii.github.io/anki-morphs/user_guide/usage/known-morphs-exporter.html?highlight=known_#resulting-file).
+Import exported LR/Migaku files, cache words, and save known morphs in the
+[AnkiMorphs format](https://mortii.github.io/anki-morphs/user_guide/usage/known-morphs-exporter.html?highlight=known_#resulting-file). Usually this command runs automatically.
 
-    polyglotka morphs --lang de
-
-## `polyglotka subs`
+### `polyglotka subs`
 
 Convert LR's Excel subs to SRT to import them to Migaku.
 
@@ -134,10 +135,10 @@ Here's how to export Excel subs:
 
 <img src='media/export_subs_2.png' width='400'>
 
-## `polyglotka info`
+### `polyglotka info`
 
 Print config and other miscellaneous info.
 
-## `polyglotka clear-cache`
+### `polyglotka clear-cache`
 
 Clear cache.

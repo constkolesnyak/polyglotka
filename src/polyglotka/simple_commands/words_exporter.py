@@ -30,7 +30,7 @@ def print_words() -> None:
 def save_anki_known_morphs(lang: str = '', words: set[Word] | None = None) -> None:
     lang = lang or config.LANG
     word_list = create_word_list(lang, LearningStage.KNOWN, words)
-    known_morphs_file = Path(config.ANKI_KNOWN_MORPHS_DIR) / f'{config.APP_NAME}_known_morphs_{lang}.csv'
+    known_morphs_file = Path(config.KNOWN_MORPHS_DIR) / f'{config.APP_NAME}_known_morphs_{lang}.csv'
 
     known_morphs_file.write_text('Morph-Lemma\n' + '\n'.join(word_list))
     pprint(f'Saved {len(word_list)} known morphs ({lang}): "{known_morphs_file}".')

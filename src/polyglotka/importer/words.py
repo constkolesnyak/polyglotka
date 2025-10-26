@@ -44,7 +44,7 @@ class Word(BaseModel):
         return data
 
 
-def import_words() -> set[Word]:
+def import_words(cache_allowed: bool = True) -> set[Word]:
     from polyglotka.importer import words_cache
 
     migaku_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.MGK_FILES_GLOB_PATTERN)
@@ -52,9 +52,13 @@ def import_words() -> set[Word]:
 
     if not (migaku_files + lr_files):
         files_not_found = f'Neither LR files "{config.LR_FILES_GLOB_PATTERN}" nor Migaku files "{config.MGK_FILES_GLOB_PATTERN}" are found in directory: "{config.EXPORTED_FILES_DIR}"'
+
+        if not cache_allowed:
+            raise UserError(files_not_found)
         if not config.CACHE_WORDS.exists():
             raise UserError(f'{files_not_found}\n  Cache also not found: "{config.CACHE_WORDS}"')
         pprint(f'{files_not_found}.\nUsing cache.')
+
         return words_cache.read()
 
     lr_items: list[LRSavedWord] = [i for i in import_lr_items(lr_files) if isinstance(i, LRSavedWord)]
