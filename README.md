@@ -49,7 +49,8 @@ Set environment variables with the `POLYGLOTKA_` prefix or pass flags directly.
 | Name                   | Type    | Default                | Description                           |
 | ---------------------- | ------- | ---------------------- | ------------------------------------- |
 | EXPORTED_FILES_DIR     | str     | $HOME/Downloads        | Directory with exported files         |
-| SRT_SUBS_TARGET_DIR    | str     | LR_SUBS_DIR            | Directory for generated SRT subs      |
+| ANKI_KNOWN_MORPHS_DIR  | str     | EXPORTED_FILES_DIR     | Directory for saving known morphs     |
+| SRT_SUBS_TARGET_DIR    | str     | EXPORTED_FILES_DIR     | Directory for generated SRT subs      |
 | PROCESSED_FILES_RM     | str     | True                   | Remove processed files                |
 | PLOTS_TITLE            | str     | Polyglotka Plots       | Title of the plots                    |
 | PLOTS_BACKGROUND_COLOR | str     | \#171717               | Background color (dark by default)    |
@@ -111,6 +112,10 @@ Output:
     Action
     Adjutant
     Adresse
+
+## `polyglotka morphs`
+
+Save known morphs.
 
 ## `polyglotka subs`
 
