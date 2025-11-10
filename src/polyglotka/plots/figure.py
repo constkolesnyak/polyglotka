@@ -67,6 +67,9 @@ def create_trace(
         if config.PLOTS_HIDE_AGGR:
             visible = 'legendonly'
 
+    if LearningStage.LEARNING in name.upper() and config.PLOTS_HIDE_AGGR:
+        visible = 'legendonly'
+
     return go.Scatter(
         x=x_data,
         y=y_data,

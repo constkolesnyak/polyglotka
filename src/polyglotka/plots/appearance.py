@@ -34,9 +34,9 @@ def get_color(lang: str, stage: str) -> str:
             return 'rgb(162, 155, 254)'
         case (_, 'ALL'):
             return hsl_to_rgb(base_hue, 35, 60)
-        case (_, LearningStage.LEARNING):
-            return hsl_to_rgb((base_hue - 30) % 360, 90, 50)
         case (_, LearningStage.KNOWN):
+            return hsl_to_rgb((base_hue - 30) % 360, 90, 50)
+        case (_, LearningStage.LEARNING):
             return hsl_to_rgb((base_hue + 45) % 360, 45, 75)
         case _:
             raise ValueError('Bad stage')
