@@ -13,31 +13,50 @@ def hsl_to_rgb(h: int, s: int, l: int) -> str:
 
 
 def language_code_to_hue(lang_code: str) -> int:
-    hash_value = 0
-    for i, char in enumerate(lang_code.lower()):
-        hash_value += (ord(char) - ord('a') + 1) * (i + 1) * 37
-    GOLDEN_RATIO = 0.618033988749
-    hue = (hash_value * GOLDEN_RATIO * 360) % 360
+    # Colors spaced ~36 degrees apart (360/10) for visual distinction
+    LANGUAGE_HUES = {
+        'ALL': 260,  # Purple
+        'KO': 330,  # Pink-red
+        'FR': 300,  # Magenta
+        'JA': 210,  # Blue
+        'DE': 90,  # Yellow-green
+        'ES': 30,  # Orange
+        'IT': 120,  # Green
+        'PT': 150,  # Green-cyan
+        #
+        'EN': 0,  # Red
+        'ZH': 60,  # Yellow
+        'RU': 180,  # Cyan
+        'AR': 240,  # Blue-purple
+        'HI': 45,  # Orange-yellow
+        'NL': 165,  # Teal
+    }
 
-    return int(hue)
+    lang_upper = lang_code.upper()
+    if lang_upper in LANGUAGE_HUES:
+        return LANGUAGE_HUES[lang_upper]
+
+    # Fallback: FNV-1a hash for uncommon language codes
+    FNV_OFFSET = 2166136261
+    FNV_PRIME = 16777619
+    hash_value = FNV_OFFSET
+    for char in lang_code.lower():
+        hash_value ^= ord(char)
+        hash_value = (hash_value * FNV_PRIME) & 0xFFFFFFFF
+
+    return hash_value % 360
 
 
 def get_color(lang: str, stage: str) -> str:
     base_hue = language_code_to_hue(lang)
 
-    match (lang, stage):
-        case ('ALL', 'ALL'):
-            return 'rgb(255, 255, 255)'
-        case ('ALL', LearningStage.LEARNING):
-            return 'rgb(108, 92, 231)'
-        case ('ALL', LearningStage.KNOWN):
-            return 'rgb(162, 155, 254)'
-        case (_, 'ALL'):
+    match (stage):
+        case 'ALL':
             return hsl_to_rgb(base_hue, 35, 60)
-        case (_, LearningStage.KNOWN):
-            return hsl_to_rgb((base_hue - 30) % 360, 90, 50)
-        case (_, LearningStage.LEARNING):
-            return hsl_to_rgb((base_hue + 45) % 360, 45, 75)
+        case LearningStage.LEARNING:
+            return hsl_to_rgb(base_hue + 20, 30, 65)
+        case LearningStage.KNOWN:
+            return hsl_to_rgb(base_hue, 95, 55)
         case _:
             raise ValueError('Bad stage')
 
