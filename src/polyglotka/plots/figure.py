@@ -65,10 +65,12 @@ def create_trace(
     if ALL in name.upper():
         line_width = 4
         if config.PLOTS_HIDE_AGGR:
-            visible = 'legendonly'
+            visible = False
+    if LearningStage.LEARNING == learning_stage and config.PLOTS_HIDE_LEARNING:
+        visible = False
 
-    if LearningStage.LEARNING in name.upper() and config.PLOTS_HIDE_AGGR:
-        visible = 'legendonly'
+    if config.PLOTS_HIDE_AGGR and config.PLOTS_HIDE_LEARNING:
+        name = language.upper()
 
     return go.Scatter(
         x=x_data,
