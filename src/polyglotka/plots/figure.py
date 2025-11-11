@@ -44,8 +44,8 @@ def create_points(words: Iterable[Word]) -> tuple[list[datetime], list[int]]:
         series = pd.Series(y_data, index=pd.to_datetime(x_data)).sort_index()
         rate = series.diff().fillna(0).resample('h').sum()  # type: ignore
 
-        # Detect burst periods: hours with >50 words for this specific trace
-        burst_threshold = 50
+        # Detect burst periods: hours with >burst_threshold  words for this specific trace
+        burst_threshold = 150
         is_burst = rate > burst_threshold
 
         # Reset smoothing at burst boundaries to prevent tails
