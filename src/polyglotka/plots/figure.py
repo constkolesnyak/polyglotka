@@ -31,7 +31,9 @@ class WordDicts:
 
 def create_points(words: Iterable[Word]) -> tuple[list[datetime], list[int]]:
     word_dates: list[datetime] = sorted(pluck_attr('date', words))
-    start, end = word_dates[0].replace(minute=0, second=0, microsecond=0), word_dates[-1]
+    # Start 1 hour before first word to show initial bursts as vertical jumps
+    start = word_dates[0].replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)
+    end = word_dates[-1]
     hourly_points = [
         start + timedelta(hours=i) for i in range(int((end - start).total_seconds() // 3600) + 1)
     ]
@@ -41,11 +43,34 @@ def create_points(words: Iterable[Word]) -> tuple[list[datetime], list[int]]:
     if config.PLOTS_SMOOTH:
         series = pd.Series(y_data, index=pd.to_datetime(x_data)).sort_index()
         rate = series.diff().fillna(0).resample('h').sum()  # type: ignore
-        y_smooth = rate.ewm(halflife=6, adjust=False).mean().cumsum()
-        y_smooth *= series.iloc[-1] / y_smooth.iloc[-1]
-        x_data, y_data = y_smooth.index, y_smooth.values.round().astype(int).tolist()
 
-    return x_data, y_data
+        # Detect burst periods: hours with >50 words for this specific trace
+        burst_threshold = 50
+        is_burst = rate > burst_threshold
+
+        # Reset smoothing at burst boundaries to prevent tails
+        rate_smooth = pd.Series(0.0, index=rate.index)
+        for i in range(len(rate)):
+            if is_burst.iloc[i]:
+                rate_smooth.iloc[i] = 0  # Bursts get no smoothing
+            elif i > 0 and not is_burst.iloc[i - 1]:
+                # Continue smoothing from previous non-burst hour
+                alpha = 2 / (6 * 2 + 1)  # halflife=6 converted to alpha
+                rate_smooth.iloc[i] = alpha * rate.iloc[i] + (1 - alpha) * rate_smooth.iloc[i - 1]
+            else:
+                # First hour or hour after burst: start fresh
+                rate_smooth.iloc[i] = rate.iloc[i]
+
+        # Add back bursts at their original positions (creates vertical jumps)
+        rate_final = rate_smooth.copy()
+        rate_final[is_burst] = rate[is_burst]
+
+        # Reconstruct cumulative curve
+        y_smooth = rate_final.cumsum()
+        y_smooth *= series.iloc[-1] / y_smooth.iloc[-1]
+        x_data, y_data = y_smooth.index, y_smooth.values.round().astype(int).tolist()  # type: ignore
+
+    return x_data, y_data  # type: ignore
 
 
 def create_trace(
