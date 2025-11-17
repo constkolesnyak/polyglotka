@@ -166,15 +166,15 @@ def convert_excel_to_srt(lr_subs_file: str) -> None:
 
     segments: list[SubtitleSegment | None] = build_segments(times_ms, primary_texts, secondary_texts)
 
-    create_srt_file(
-        create_srt_path(lr_subs_file, 'primary'),
-        create_srt_text(segments, primary_texts),
-    )
     if secondary_texts is not None:
         create_srt_file(
             create_srt_path(lr_subs_file, 'secondary'),
             create_srt_text(segments, secondary_texts),
         )
+    create_srt_file(
+        create_srt_path(lr_subs_file, 'primary'),
+        create_srt_text(segments, primary_texts),
+    )
 
 
 def main() -> None:
