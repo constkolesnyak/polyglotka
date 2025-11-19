@@ -23,8 +23,9 @@ class _Config(BaseSettings):  # Singleton
     LR_SUBS_GLOB_PATTERN: str = 'lln_excel_subs_*.xlsx'
     LR_SUBS_MS_PER_CHAR: int = 80
     SRT_SUBS_TARGET_DIR: str = EXPORTED_FILES_DIR
+    SRT_SUBS_TRASH_DIR: str = EXPORTED_FILES_DIR
 
-    PROCESSED_FILES_RM: bool = True
+    RM_PROCESSED_FILES: bool = True
 
     PLOTS_TITLE: str = 'Polyglotka Plots'
     PLOTS_BACKGROUND_COLOR: str = '#171717'

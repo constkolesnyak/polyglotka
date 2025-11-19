@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import pytest
 from path import Path
 
@@ -5,8 +7,8 @@ from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 
 
-def remove_files_maybe(files: list[str] | list[Path]) -> None:
-    if config.PROCESSED_FILES_RM:
+def remove_files_maybe(files: Iterable[str]) -> None:
+    if config.RM_PROCESSED_FILES:
         for file in files:
             pprint(f'Removed "{file}".')
             Path(file).remove_p()

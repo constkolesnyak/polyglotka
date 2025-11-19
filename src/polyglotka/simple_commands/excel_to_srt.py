@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
@@ -177,9 +178,20 @@ def convert_excel_to_srt(lr_subs_file: str) -> None:
     )
 
 
-def main() -> None:
-    lr_subs_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN)
+def trash_existing_srt_files() -> None:
+    pattern = re.compile(r'^\d+_(?:primary|secondary)\.srt$')
+    target_dir = Path(config.SRT_SUBS_TARGET_DIR)
+    trash_dir = Path(config.SRT_SUBS_TRASH_DIR).mkdir_p()
 
-    for lr_subs_file in lr_subs_files:
-        convert_excel_to_srt(lr_subs_file)
-    remove_files_maybe(lr_subs_files)
+    for srt_file in target_dir.glob('*.srt'):
+        if srt_file.is_file() and pattern.fullmatch(srt_file.name):
+            new_path = trash_dir / srt_file.name
+            srt_file.move(new_path)
+            pprint(f'Trashed "{new_path}".')
+
+
+def main() -> None:
+    if lr_subs_files := Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN):
+        trash_existing_srt_files()
+        convert_excel_to_srt(lr_subs_files[0])
+        remove_files_maybe([lr_subs_files[0]])
