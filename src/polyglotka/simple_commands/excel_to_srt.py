@@ -193,5 +193,6 @@ def trash_existing_srt_files() -> None:
 def main() -> None:
     if lr_subs_files := Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN):
         trash_existing_srt_files()
-        convert_excel_to_srt(lr_subs_files[0])
-        remove_files_maybe([lr_subs_files[0]])
+        for lr_subs_file in lr_subs_files:
+            convert_excel_to_srt(lr_subs_file)
+        remove_files_maybe(lr_subs_files)
