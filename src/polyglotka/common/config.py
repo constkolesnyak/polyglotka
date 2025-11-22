@@ -24,6 +24,8 @@ class _Config(BaseSettings):  # Singleton
     LR_SUBS_MS_PER_CHAR: int = 80
     SRT_SUBS_TARGET_DIR: str = EXPORTED_FILES_DIR
     SRT_SUBS_TRASH_DIR: str = EXPORTED_FILES_DIR
+    NAME: str = ''
+    START: int = 1
 
     RM_PROCESSED_FILES: bool = True
 

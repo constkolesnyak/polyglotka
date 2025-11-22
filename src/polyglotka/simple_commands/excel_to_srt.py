@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
+import icecream
 import pandas as pd
 from path import Path
 
@@ -145,10 +146,17 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
     return next_starts
 
 
-def create_srt_path(lr_subs_file: str, postfix: str) -> Path:
-    lr_subs_file = Path(lr_subs_file)
-    lr_subs_id: str = lr_subs_file.stem.split('_')[-1]
-    return Path(config.SRT_SUBS_TARGET_DIR) / f'{lr_subs_id}_{postfix}.srt'
+def create_srt_name(lr_subs_file: str, episode: int) -> str:
+    name: str = Path(lr_subs_file).stem.split('_')[-1]
+
+    if config.NAME:
+        name = config.NAME
+    if episode:
+        if not config.NAME:
+            raise UserError('NAME must be provided for multiple LR subs files')
+        name += f'_{episode}'
+
+    return name
 
 
 def create_srt_file(srt_path: Path, srt_text: str) -> None:
@@ -156,7 +164,7 @@ def create_srt_file(srt_path: Path, srt_text: str) -> None:
     pprint(f'Added "{srt_path}".')
 
 
-def convert_excel_to_srt(lr_subs_file: str) -> None:
+def convert_excel_to_srt(lr_subs_file: str, srt_name: str) -> None:
     dataframe: pd.DataFrame = pd.read_excel(Path(lr_subs_file))  # type: ignore
 
     times_ms: list[int | None] = [parse_time(value) for value in dataframe['Time']]
@@ -169,11 +177,11 @@ def convert_excel_to_srt(lr_subs_file: str) -> None:
 
     if secondary_texts is not None:
         create_srt_file(
-            create_srt_path(lr_subs_file, 'secondary'),
+            Path(config.SRT_SUBS_TARGET_DIR) / f'{srt_name}_secondary.srt',
             create_srt_text(segments, secondary_texts),
         )
     create_srt_file(
-        create_srt_path(lr_subs_file, 'primary'),
+        Path(config.SRT_SUBS_TARGET_DIR) / f'{srt_name}_primary.srt',
         create_srt_text(segments, primary_texts),
     )
 
@@ -193,6 +201,11 @@ def trash_existing_srt_files() -> None:
 def main() -> None:
     if lr_subs_files := Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN):
         trash_existing_srt_files()
-        for lr_subs_file in lr_subs_files:
-            convert_excel_to_srt(lr_subs_file)
+
+        episode_start = 0 if len(lr_subs_files) == 1 else config.START
+        sorted_lr_subs_files = sorted(lr_subs_files, key=lambda file: file.getmtime())
+
+        for episode, lr_subs_file in enumerate(sorted_lr_subs_files, episode_start):
+            srt_name = create_srt_name(lr_subs_file, episode)
+            convert_excel_to_srt(lr_subs_file, srt_name)
         remove_files_maybe(lr_subs_files)
