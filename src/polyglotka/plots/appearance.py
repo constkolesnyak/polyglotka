@@ -75,7 +75,7 @@ def configure_figure(fig: go.Figure) -> None:
             tickfont=dict(size=16, color='white'),
         ),
         yaxis=dict(
-            title=dict(text='Word Count', font=dict(size=20, color='white'), standoff=15),
+            title=dict(text=config.PLOTS_Y_TITLE, font=dict(size=20, color='white'), standoff=15),
             showgrid=True,
             gridcolor='rgba(255,255,255,0.2)',
             tickfont=dict(size=16, color='white'),

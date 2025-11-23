@@ -35,6 +35,8 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_SMOOTH: bool = True
     PLOTS_HIDE_AGGR: bool = True
     PLOTS_HIDE_LEARNING: bool = True
+    PLOTS_Y_MIN: int = 0
+    PLOTS_Y_TITLE: str = 'Word Count'
 
     ANKI_MIN_COUNTS: tuple[int, int] | str = (0, 0)
     ANKI_FILTERS: str = 'deck:漢字 is:suspended'
