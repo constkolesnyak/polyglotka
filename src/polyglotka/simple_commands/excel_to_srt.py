@@ -62,7 +62,7 @@ def estimate_end(start_ms: int, text: str, next_start_ms: Optional[int]) -> int:
     MIN_DURATION_MS = 1000
     MAX_DURATION_MS = 9**9
     BASE_DURATION_MS = 400
-    GAP_BETWEEN_SEGMENTS_MS = 5
+    GAP_BETWEEN_SEGMENTS_MS = 50
 
     readable_chars = len(_strip_newlines(text))
     duration_ms = BASE_DURATION_MS + readable_chars * config.LR_SUBS_MS_PER_CHAR
