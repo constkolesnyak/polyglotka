@@ -1,4 +1,5 @@
 import colorsys
+from datetime import datetime, timedelta
 
 import dash
 import plotly.graph_objects as go
@@ -61,7 +62,7 @@ def get_color(lang: str, stage: str) -> str:
             raise ValueError('Bad stage')
 
 
-def configure_figure(fig: go.Figure) -> None:
+def configure_figure(fig: go.Figure, traces: list[go.Scatter]) -> None:
     fig.update_layout(  # pyright: ignore
         title=dict(
             text=config.PLOTS_TITLE,
@@ -100,6 +101,15 @@ def configure_figure(fig: go.Figure) -> None:
         hovermode='x unified',
         margin=dict(l=120, r=60, t=90, b=100),
     )
+
+    visible_traces = [t for t in traces if t.visible in (True, 'legendonly')]  # pyright: ignore
+    max_y = max(max(t.y) for t in visible_traces if t.y and 'EN' not in t.name.upper())  # pyright: ignore
+    fig.update_yaxes(range=[config.PLOTS_Y_MIN, max_y * 1.05])  # pyright: ignore
+
+    if config.PLOTS_X_DAYS_DELTA:
+        fig.update_xaxes(  # pyright: ignore
+            range=[datetime.now() - timedelta(days=config.PLOTS_X_DAYS_DELTA), datetime.now()]
+        )
 
 
 def create_dash_app(figure: go.Figure) -> dash.Dash:

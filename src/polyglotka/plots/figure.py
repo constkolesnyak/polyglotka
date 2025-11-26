@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Iterable
 
+import icecream
 import pandas as pd
 import plotly.graph_objects as go  # pyright: ignore
 from funcy import pluck_attr  # pyright: ignore
@@ -24,9 +25,14 @@ class WordDicts:
         ] = defaultdict(set)
 
         for word in self.all_words:
-            self.by_lang[word.language].add(word)
-            self.by_stage[word.learning_stage].add(word)
-            self.by_lang_stage[(word.language, word.learning_stage)].add(word)
+            if word.learning_stage in config.plots_learning_stages:
+                self.by_lang_stage[(word.language, word.learning_stage)].add(word)
+
+            if config.PLOTS_AGGREGATE:
+                icecream.ic()
+                self.by_lang[word.language].add(word)
+                if word.learning_stage in config.plots_learning_stages:
+                    self.by_stage[word.learning_stage].add(word)
 
 
 def create_points(words: Iterable[Word]) -> tuple[list[datetime], list[int]]:
@@ -86,15 +92,9 @@ def create_trace(
     name = f'{language.upper()} - {learning_stage.capitalize()}'
 
     line_width = 3
-    visible = True
     if ALL in name.upper():
         line_width = 4
-        if config.PLOTS_HIDE_AGGR:
-            visible = False
-    if LearningStage.LEARNING == learning_stage and config.PLOTS_HIDE_LEARNING:
-        visible = False
-
-    if config.PLOTS_HIDE_AGGR and config.PLOTS_HIDE_LEARNING:
+    if not config.PLOTS_AGGREGATE and len(config.plots_learning_stages):
         name = language.upper()
 
     return go.Scatter(
@@ -106,15 +106,14 @@ def create_trace(
             color=get_color(language, learning_stage),
             width=line_width,
         ),
-        visible=visible,
+        visible=True,
     )
 
 
 def create_figure(words: Iterable[Word]) -> go.Figure:
     wds = WordDicts(words)
     fig: go.Figure = go.Figure()
-    languages = wds.by_lang.keys()
-    stages = wds.by_stage.keys()
+    languages, stages = map(set, zip(*wds.by_lang_stage.keys()))
     traces: list[go.Scatter] = []
 
     for lang in languages:
@@ -126,42 +125,34 @@ def create_figure(words: Iterable[Word]) -> go.Figure:
                     wds.by_lang_stage[(lang, stage)],
                 )
             )
+        if config.PLOTS_AGGREGATE:
+            traces.append(
+                create_trace(
+                    lang,
+                    ALL,
+                    wds.by_lang[lang],
+                )
+            )
+
+    if config.PLOTS_AGGREGATE:
+        for stage in stages:
+            traces.append(
+                create_trace(
+                    ALL,
+                    stage,
+                    wds.by_stage[stage],
+                )
+            )
         traces.append(
             create_trace(
-                lang,
                 ALL,
-                wds.by_lang[lang],
+                ALL,
+                wds.all_words,
             )
         )
-
-    for stage in stages:
-        traces.append(
-            create_trace(
-                ALL,
-                stage,
-                wds.by_stage[stage],
-            )
-        )
-
-    traces.append(
-        create_trace(
-            ALL,
-            ALL,
-            wds.all_words,
-        )
-    )
 
     for trace in sorted(traces, key=lambda t: t.name):  # pyright: ignore
         fig.add_trace(trace)  # pyright: ignore
 
-    visible_traces = [t for t in traces if t.visible in (True, 'legendonly')]  # pyright: ignore
-    max_y = max(max(t.y) for t in visible_traces if t.y and 'EN' not in t.name.upper())  # pyright: ignore
-
-    configure_figure(fig)
-    fig.update_yaxes(range=[config.PLOTS_Y_MIN, max_y * 1.05])  # pyright: ignore
-    if config.PLOTS_X_DAYS_DELTA:
-        fig.update_xaxes(  # pyright: ignore
-            range=[datetime.now() - timedelta(days=config.PLOTS_X_DAYS_DELTA), datetime.now()]
-        )
-
+    configure_figure(fig, traces)
     return fig
