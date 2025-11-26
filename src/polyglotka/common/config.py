@@ -14,6 +14,15 @@ class _Config(BaseSettings):  # Singleton
     ENV_PREFIX: str = f'{APP_NAME.upper()}_'
     model_config = SettingsConfigDict(env_prefix=ENV_PREFIX, case_sensitive=True)
 
+    RM_PROCESSED_FILES: bool = True
+    NATIVE_LANG: str = 'en'
+
+    # CLI args
+    NAME: str = ''
+    START: int = 1
+    STAGE: str = ''
+    LANG: str = ''
+
     CACHE_DIR: Path = Path(user_cache_dir(APP_NAME)).mkdir_p()
     CACHE_WORDS: Path = CACHE_DIR / 'words.json'
 
@@ -25,10 +34,6 @@ class _Config(BaseSettings):  # Singleton
     LR_SUBS_MS_PER_CHAR: int = 80
     SRT_SUBS_TARGET_DIR: str = EXPORTED_FILES_DIR
     SRT_SUBS_TRASH_DIR: str = EXPORTED_FILES_DIR
-    NAME: str = ''
-    START: int = 1
-
-    RM_PROCESSED_FILES: bool = True
 
     PLOTS_TITLE: str = 'Polyglotka Plots'
     PLOTS_BACKGROUND_COLOR: str = '#171717'
@@ -46,9 +51,6 @@ class _Config(BaseSettings):  # Singleton
 
     KNOWN_MORPHS_DIR: str = EXPORTED_FILES_DIR
     KNOWN_MORPHS_SAVE_LANGS: str = ''  # Example: 'ja,de'
-
-    STAGE: str = ''
-    LANG: str = ''
 
     @cached_property
     def plots_learning_stages(self):

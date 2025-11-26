@@ -2,7 +2,7 @@ import colorsys
 from datetime import datetime, timedelta
 
 import dash
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # pyright: ignore
 
 from polyglotka.common.config import config
 from polyglotka.importer.words import LearningStage
@@ -102,8 +102,14 @@ def configure_figure(fig: go.Figure, traces: list[go.Scatter]) -> None:
         margin=dict(l=120, r=60, t=90, b=100),
     )
 
-    visible_traces = [t for t in traces if t.visible in (True, 'legendonly')]  # pyright: ignore
-    max_y = max(max(t.y) for t in visible_traces if t.y and 'EN' not in t.name.upper())  # pyright: ignore
+    visible_traces: list[go.Scatter] = [
+        t for t in traces if t.visible in (True, 'legendonly')  # pyright: ignore
+    ]
+    max_y: int = max(  # pyright: ignore
+        max(t.y)  # pyright: ignore
+        for t in visible_traces
+        if t.y and config.NATIVE_LANG not in t.name.lower()  # pyright: ignore
+    )
     fig.update_yaxes(range=[config.PLOTS_Y_MIN, max_y * 1.05])  # pyright: ignore
 
     if config.PLOTS_X_DAYS_DELTA:
