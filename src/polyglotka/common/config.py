@@ -36,6 +36,7 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_HIDE_AGGR: bool = True
     PLOTS_HIDE_LEARNING: bool = True
     PLOTS_Y_MIN: int = 0
+    PLOTS_X_DAYS_DELTA: int | None = None
     PLOTS_Y_TITLE: str = 'Word Count'
 
     ANKI_MIN_COUNTS: tuple[int, int] | str = (0, 0)

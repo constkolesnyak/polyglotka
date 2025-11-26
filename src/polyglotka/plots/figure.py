@@ -159,4 +159,9 @@ def create_figure(words: Iterable[Word]) -> go.Figure:
 
     configure_figure(fig)
     fig.update_yaxes(range=[config.PLOTS_Y_MIN, max_y * 1.05])  # pyright: ignore
+    if config.PLOTS_X_DAYS_DELTA:
+        fig.update_xaxes(  # pyright: ignore
+            range=[datetime.now() - timedelta(days=config.PLOTS_X_DAYS_DELTA), datetime.now()]
+        )
+
     return fig
