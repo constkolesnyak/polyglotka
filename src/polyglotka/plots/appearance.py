@@ -23,8 +23,8 @@ def language_code_to_hue(lang_code: str) -> int:
         'ES': 30,  # Orange
         'IT': 120,  # Green
         'PT': 150,  # Green-cyan
-        #
         'EN': 0,  # Red
+        #
         'ZH': 60,  # Yellow
         'RU': 180,  # Cyan
         'AR': 240,  # Blue-purple

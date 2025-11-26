@@ -155,7 +155,7 @@ def create_figure(words: Iterable[Word]) -> go.Figure:
         fig.add_trace(trace)  # pyright: ignore
 
     visible_traces = [t for t in traces if t.visible in (True, 'legendonly')]  # pyright: ignore
-    max_y = max(max(t.y) for t in visible_traces if t.y)  # pyright: ignore
+    max_y = max(max(t.y) for t in visible_traces if t.y and 'EN' not in t.name.upper())  # pyright: ignore
 
     configure_figure(fig)
     fig.update_yaxes(range=[config.PLOTS_Y_MIN, max_y * 1.05])  # pyright: ignore
