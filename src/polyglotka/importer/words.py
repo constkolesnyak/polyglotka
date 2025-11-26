@@ -27,7 +27,7 @@ class Word(BaseModel):
     date: datetime
 
     def __hash__(self) -> int:
-        return hash(self.word)
+        return hash(f'{self.word},{self.language}')
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Word) and self.word == other.word
