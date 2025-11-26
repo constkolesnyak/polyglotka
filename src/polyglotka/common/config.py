@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Any
 
 from path import Path
@@ -33,8 +34,8 @@ class _Config(BaseSettings):  # Singleton
     PLOTS_BACKGROUND_COLOR: str = '#171717'
     PLOTS_SERVER_URL: str = 'http://127.0.0.1:8050'
     PLOTS_SMOOTH: bool = True
-    PLOTS_HIDE_AGGR: bool = True
-    PLOTS_HIDE_LEARNING: bool = True
+    PLOTS_AGGREGATE: bool = True
+    PLOTS_LEARNING_STAGES: str = 'LEARNING,KNOWN,SKIPPED'
     PLOTS_Y_MIN: int = 0
     PLOTS_X_DAYS_DELTA: int | None = None
     PLOTS_Y_TITLE: str = 'Word Count'
@@ -48,6 +49,12 @@ class _Config(BaseSettings):  # Singleton
 
     STAGE: str = ''
     LANG: str = ''
+
+    @cached_property
+    def plots_learning_stages(self):
+        from polyglotka.importer.words import LearningStage
+
+        return {LearningStage(stage) for stage in self.PLOTS_LEARNING_STAGES.upper().split(',')}
 
     @property
     def anki_min_counts(self) -> tuple[int, int]:
