@@ -11,7 +11,7 @@ polyglotka = 'polyglotka.main:main'
 # Reinstall via pipx: pipx uninstall polyglotka; pipx install -e .
 
 [tool.poetry.dependencies]
-python = "3.13.*"
+python = "3.*.*"
 path = ">=17.1.1,<18.0.0"
 plotly = "^6.3.0"
 pytest = "^8.4.2"
