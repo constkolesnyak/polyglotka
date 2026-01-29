@@ -54,9 +54,9 @@ def import_words(cache_allowed: bool = True) -> set[Word]:
     migaku_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.MGK_FILES_GLOB_PATTERN)
     lr_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_FILES_GLOB_PATTERN)
 
-    # Try browser import if --browser flag is set and no CSV files found
+    # Try browser import if --chrome flag is set and no CSV files found
     browser_migaku_items: list[MigakuItem] = []
-    if config.BROWSER and not migaku_files:
+    if config.CHROME and not migaku_files:
         from polyglotka.importer.migaku.browser import fetch_migaku_words
 
         # tdc

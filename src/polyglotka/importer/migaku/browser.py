@@ -17,8 +17,8 @@ MIGAKU_DOMAIN = 'https_study.migaku.com_0'
 
 def _get_chrome_profile_path() -> Path:
     """Auto-detect Chrome user data directory based on platform."""
-    if config.MIGAKU_CHROME_PROFILE:
-        profile_path = Path(config.MIGAKU_CHROME_PROFILE)
+    if config.CHROME_DATA_DIR:
+        profile_path = Path(config.CHROME_DATA_DIR)
         if not profile_path.exists():
             raise UserError(f'Chrome profile path not found: {profile_path}')
         return profile_path
@@ -38,7 +38,7 @@ def _get_chrome_profile_path() -> Path:
     if not base_path.exists():
         raise UserError(
             f'Chrome data not found at: {base_path}\n'
-            'Please install Chrome or set POLYGLOTKA_MIGAKU_CHROME_PROFILE environment variable.'
+            'Please install Chrome or set CHROME_DATA_DIR variable.'
         )
     return base_path
 
