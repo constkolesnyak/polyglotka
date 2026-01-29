@@ -32,15 +32,8 @@ openpyxl = "^3.1.5"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-markers = ['smoke']
 addopts = "-v"
 # filterwarnings = ["ignore::DeprecationWarning"]
-
-[tool.coverage.run]
-omit = ['tests/*', '__init__.py']
-
-[tool.coverage.report]
-exclude_also = ['raise NotImplementedError']
 
 [tool.black]
 line-length = 110
