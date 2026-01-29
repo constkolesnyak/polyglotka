@@ -27,6 +27,16 @@ Use [pipx](https://pipx.pypa.io):
 
 ### From Migaku
 
+#### Option 1: Direct Chrome import (recommended)
+
+Polyglotka reads Migaku data directly from Chrome's storage. Just run:
+
+    polyglotka import
+
+Make sure you're logged into [Migaku](https://study.migaku.com) in Chrome.
+
+#### Option 2: Manual CSV export
+
 1. Add
    [Migaku Memory Exporter](https://github.com/constkolesnyak/migaku-memory-exporter/blob/main/migaku_exporter.js)
    to your userscript manager.
@@ -36,6 +46,8 @@ Use [pipx](https://pipx.pypa.io):
 3. Select a language, click _Export words_, repeat for every language you study.
 
    <img src='media/migaku_export_words.jpeg' width='400'>
+
+4. Run `polyglotka import --chrome False` to import only from CSV files.
 
 ## Configure
 
