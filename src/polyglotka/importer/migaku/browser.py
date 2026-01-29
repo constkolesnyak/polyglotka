@@ -132,14 +132,12 @@ def fetch_migaku_words_from_chrome(
 ) -> Generator[MigakuItem, None, None]:
     """Fetch Migaku words by reading Chrome's IndexedDB storage directly from disk."""
     chrome_path = _get_chrome_profile_path()
-    pprint(f'Reading from Chrome data: {chrome_path}')
+    pprint(f'Reading from Chrome data: "{chrome_path}"')
 
     blob_dir = _find_migaku_blob_path(chrome_path)
     pprint(f'Found Migaku data in: {blob_dir.parent.parent.name}')
 
     blob_path = _find_sqlite_blob(blob_dir)
-    pprint('Extracting words from IndexedDB...')
-
     sqlite_data = _decompress_blob(blob_path)
     word_dicts = _query_wordlist(sqlite_data)
 
@@ -147,6 +145,5 @@ def fetch_migaku_words_from_chrome(
         word_dicts = [w for w in word_dicts if w.get('language') in languages]
 
     pprint(f'Extracted {len(word_dicts)} words from Migaku')
-
     for word_dict in word_dicts:
         yield MigakuItem.model_validate(word_dict)
