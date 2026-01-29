@@ -11,7 +11,11 @@ from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.common.utils import remove_files_maybe
 from polyglotka.importer.language_reactor.importer import LRSavedWord, import_lr_items
-from polyglotka.importer.migaku.importer import MigakuItem, import_migaku_items
+from polyglotka.importer.migaku.importer import (
+    MigakuItem,
+    import_migaku_items,
+    import_migaku_items_from_dicts,
+)
 
 
 class LearningStage(StrEnum):
@@ -50,7 +54,16 @@ def import_words(cache_allowed: bool = True) -> set[Word]:
     migaku_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.MGK_FILES_GLOB_PATTERN)
     lr_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_FILES_GLOB_PATTERN)
 
-    if not (migaku_files + lr_files):
+    # Try browser import if --browser flag is set and no CSV files found
+    browser_migaku_items: list[MigakuItem] = []
+    if config.BROWSER and not migaku_files:
+        from polyglotka.importer.migaku.browser import fetch_migaku_words
+
+        # tdc
+        word_dicts = fetch_migaku_words()
+        browser_migaku_items = list(import_migaku_items_from_dicts(word_dicts))
+
+    if not (migaku_files + lr_files) and not browser_migaku_items:
         files_not_found = f'Neither LR files "{config.LR_FILES_GLOB_PATTERN}" nor Migaku files "{config.MGK_FILES_GLOB_PATTERN}" are found in directory: "{config.EXPORTED_FILES_DIR}"'
 
         if not cache_allowed:
@@ -62,7 +75,7 @@ def import_words(cache_allowed: bool = True) -> set[Word]:
         return words_cache.read()
 
     lr_items: list[LRSavedWord] = [i for i in import_lr_items(lr_files) if isinstance(i, LRSavedWord)]
-    migaku_items: list[MigakuItem] = list(import_migaku_items(migaku_files))
+    migaku_items: list[MigakuItem] = list(import_migaku_items(migaku_files)) + browser_migaku_items
     all_words: list[Word] = list(words_cache.read()) + [
         Word(**item.model_dump()) for item in (migaku_items + lr_items)
     ]

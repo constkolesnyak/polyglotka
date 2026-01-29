@@ -50,7 +50,11 @@ class _Config(BaseSettings):  # Singleton
     ANKI_KANJI_FIELD: str = 'kanji'
 
     KNOWN_MORPHS_DIR: str = EXPORTED_FILES_DIR
-    KNOWN_MORPHS_SAVE_LANGS: str = ''  # Example: 'ja,de'
+    KNOWN_MORPHS_SAVE_LANGS: str = ''  # Example: 'ja,de' #tdc
+
+    # Migaku direct import settings
+    MIGAKU_CHROME_PROFILE: str = ''  # Auto-detect if empty
+    BROWSER: bool = False  # Use --browser flag to import directly from Chrome's IndexedDB
 
     @cached_property
     def plots_learning_stages(self):
