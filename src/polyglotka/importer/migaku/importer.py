@@ -42,19 +42,3 @@ def import_migaku_items(migaku_files: list[Path]) -> Generator[MigakuItem, None,
             dataframe: pd.DataFrame = pd.read_csv(migaku_file).fillna('')  # type: ignore
             yield from (MigakuItem.model_validate(row.to_dict()) for _, row in dataframe.iterrows())  # type: ignore
             progress.update(advance=1)
-
-
-# tdc
-def import_migaku_items_from_dicts(word_dicts: list[dict]) -> Generator[MigakuItem, None, None]:
-    """Import MigakuItems from dictionary data (e.g., from browser automation)."""
-    if not word_dicts:
-        return
-    with Progress(
-        progress_type=ProgressType.BAR,
-        text='Processing Migaku words',
-        postfix='words',
-        total_tasks=len(word_dicts),
-    ) as progress:
-        for word_dict in word_dicts:
-            yield MigakuItem.model_validate(word_dict)
-            progress.update(advance=1)

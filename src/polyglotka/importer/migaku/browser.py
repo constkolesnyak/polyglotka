@@ -4,13 +4,14 @@ import platform
 import sqlite3
 import tempfile
 import zlib
-from typing import Any
+from typing import Any, Generator
 
 from path import Path
 
 from polyglotka.common.config import config
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
+from polyglotka.importer.migaku.importer import MigakuItem
 
 MIGAKU_DOMAIN = 'https_study.migaku.com_0'
 
@@ -126,20 +127,10 @@ def _query_wordlist(sqlite_data: bytes) -> list[dict[str, Any]]:
         tmp_path.remove()
 
 
-# tdc
-def fetch_migaku_words(languages: list[str] | None = None) -> list[dict[str, Any]]:
-    """
-    Fetch Migaku words by reading Chrome's IndexedDB storage directly from disk.
-
-    This approach reads the data files without needing to launch a browser,
-    so Chrome can remain open while running this command.
-
-    Args:
-        languages: Optional list of language codes to filter (e.g., ['ja', 'de'])
-
-    Returns:
-        List of word dictionaries with keys: dictForm, secondary, hasCard, mod, language, knownStatus
-    """
+def fetch_migaku_words_from_chrome(
+    languages: list[str] | None = None,
+) -> Generator[MigakuItem, None, None]:
+    """Fetch Migaku words by reading Chrome's IndexedDB storage directly from disk."""
     chrome_path = _get_chrome_profile_path()
     pprint(f'Reading from Chrome data: {chrome_path}')
 
@@ -150,11 +141,12 @@ def fetch_migaku_words(languages: list[str] | None = None) -> list[dict[str, Any
     pprint('Extracting words from IndexedDB...')
 
     sqlite_data = _decompress_blob(blob_path)
-    words = _query_wordlist(sqlite_data)
+    word_dicts = _query_wordlist(sqlite_data)
 
-    # Filter by language if specified
     if languages:
-        words = [w for w in words if w.get('language') in languages]
+        word_dicts = [w for w in word_dicts if w.get('language') in languages]
 
-    pprint(f'Extracted {len(words)} words from Migaku')
-    return words
+    pprint(f'Extracted {len(word_dicts)} words from Migaku')
+
+    for word_dict in word_dicts:
+        yield MigakuItem.model_validate(word_dict)
