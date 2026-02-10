@@ -10,14 +10,14 @@ Polyglotka is a CLI tool for language learners that imports data from Language R
 
 ```bash
 # Install dependencies
-poetry install
+uv sync
 
 # Run CLI commands
-poetry run polyglotka <command> [flags]
+uv run polyglotka <command> [flags]
 # Commands: info, plots, kanji, anki, words, subs, clear-cache, import
 
 # Run all tests
-poetry run pytest
+uv run pytest
 ```
 
 ## Architecture

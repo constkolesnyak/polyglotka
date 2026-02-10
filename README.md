@@ -11,9 +11,9 @@ is a famous polyglotka.
 
 ## Install
 
-Use [pipx](https://pipx.pypa.io):
+Use [uv](https://docs.astral.sh/uv/):
 
-    pipx install git+https://github.com/constkolesnyak/polyglotka
+    uv tool install git+https://github.com/constkolesnyak/polyglotka
 
 ## Export Data
 

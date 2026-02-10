@@ -1,6 +1,5 @@
 from typing import Iterable
 
-import pytest
 from path import Path
 
 from polyglotka.common.config import config
@@ -15,4 +14,5 @@ def remove_files_maybe(files: Iterable[str]) -> None:
 
 
 def run_pytest_k(test_func: str) -> None:
+    import pytest
     pytest.main(['-k', test_func])
