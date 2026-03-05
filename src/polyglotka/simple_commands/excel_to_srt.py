@@ -146,17 +146,8 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
     return next_starts
 
 
-def create_srt_name(lr_subs_file: str, episode: int) -> str:
-    name: str = Path(lr_subs_file).stem.split('_')[-1]
-
-    if config.NAME:
-        name = config.NAME
-    if episode:
-        if not config.NAME:
-            raise UserError('NAME must be provided for multiple LR subs files')
-        name += f'_{episode}'
-
-    return name
+def create_srt_name(episode: int) -> str:
+    return f'{config.NAME}_{episode}'
 
 
 def create_srt_file(srt_path: Path, srt_text: str) -> None:
@@ -164,7 +155,7 @@ def create_srt_file(srt_path: Path, srt_text: str) -> None:
     pprint(f'Added "{srt_path}".')
 
 
-def convert_excel_to_srt(lr_subs_file: str, srt_name: str) -> None:
+def convert_excel_to_srt(lr_subs_file: str, srt_name: str, target_dir: Path) -> None:
     dataframe: pd.DataFrame = pd.read_excel(Path(lr_subs_file))  # type: ignore
 
     times_ms: list[int | None] = [parse_time(value) for value in dataframe['Time']]
@@ -177,18 +168,17 @@ def convert_excel_to_srt(lr_subs_file: str, srt_name: str) -> None:
 
     if secondary_texts is not None:
         create_srt_file(
-            Path(config.SRT_SUBS_TARGET_DIR) / f'{srt_name}_secondary.srt',
+            target_dir / f'{srt_name}_secondary.srt',
             create_srt_text(segments, secondary_texts),
         )
     create_srt_file(
-        Path(config.SRT_SUBS_TARGET_DIR) / f'{srt_name}_primary.srt',
+        target_dir / f'{srt_name}_primary.srt',
         create_srt_text(segments, primary_texts),
     )
 
 
-def trash_existing_srt_files() -> None:
-    pattern = re.compile(r'^\d+_(?:primary|secondary)\.srt$')
-    target_dir = Path(config.SRT_SUBS_TARGET_DIR)
+def trash_existing_srt_files(target_dir: Path) -> None:
+    pattern = re.compile(r'^.+_(?:primary|secondary)\.srt$')
     trash_dir = Path(config.SRT_SUBS_TRASH_DIR).mkdir_p()
 
     for srt_file in target_dir.glob('*.srt'):
@@ -199,13 +189,17 @@ def trash_existing_srt_files() -> None:
 
 
 def main() -> None:
-    if lr_subs_files := Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN):
-        trash_existing_srt_files()
+    if not config.NAME:
+        raise UserError('--name is required for the subs command')
 
-        episode_start = 0 if len(lr_subs_files) == 1 else config.START
+    if lr_subs_files := Path(config.EXPORTED_FILES_DIR).glob(config.LR_SUBS_GLOB_PATTERN):
+        target_dir = Path(config.SRT_SUBS_TARGET_DIR) / config.NAME
+        target_dir.mkdir_p()
+        trash_existing_srt_files(target_dir)
+
         sorted_lr_subs_files = sorted(lr_subs_files, key=lambda file: file.getmtime())
 
-        for episode, lr_subs_file in enumerate(sorted_lr_subs_files, episode_start):
-            srt_name = create_srt_name(lr_subs_file, episode)
-            convert_excel_to_srt(lr_subs_file, srt_name)
+        for episode, lr_subs_file in enumerate(sorted_lr_subs_files, config.START):
+            srt_name = create_srt_name(episode)
+            convert_excel_to_srt(lr_subs_file, srt_name, target_dir)
         remove_files_maybe(lr_subs_files)
