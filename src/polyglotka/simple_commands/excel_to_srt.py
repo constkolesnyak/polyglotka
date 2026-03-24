@@ -146,7 +146,9 @@ def _compute_next_starts(times_ms: Sequence[Optional[int]]) -> list[Optional[int
     return next_starts
 
 
-def create_srt_name(episode: int) -> str:
+def create_srt_name(episode: int, total: int) -> str:
+    if total == 1:
+        return config.NAME
     return f'{config.NAME}_{episode}'
 
 
@@ -199,7 +201,8 @@ def main() -> None:
 
         sorted_lr_subs_files = sorted(lr_subs_files, key=lambda file: file.getmtime())
 
+        total = len(sorted_lr_subs_files)
         for episode, lr_subs_file in enumerate(sorted_lr_subs_files, config.START):
-            srt_name = create_srt_name(episode)
+            srt_name = create_srt_name(episode, total)
             convert_excel_to_srt(lr_subs_file, srt_name, target_dir)
         remove_files_maybe(lr_subs_files)
