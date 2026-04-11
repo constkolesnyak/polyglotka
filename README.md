@@ -19,11 +19,27 @@ Use [uv](https://docs.astral.sh/uv/):
 
 ### From Language Reactor
 
+#### Option 1: Direct Chrome import (recommended)
+
+Polyglotka reads Language Reactor data directly from Chrome's storage. Just run:
+
+    polyglotka import
+
+Make sure you're signed into [Language Reactor](https://www.languagereactor.com) in Chrome.
+
+On macOS you need the Snappy C library so the Chrome IndexedDB parser can build:
+
+    brew install snappy
+
+#### Option 2: Manual JSON export
+
 1. On the Language Reactor website, open your [saved items](https://www.languagereactor.com/saved-items).
 
 2. Click _Export_, choose _JSON_, _All-All-Any-Any_, and click _Export_ again.
 
    <img src='media/export_json_window.png' width='400'>
+
+3. Run `polyglotka import --chrome-lr False` to skip the Chrome import for LR.
 
 ### From Migaku
 
@@ -47,7 +63,7 @@ Make sure you're logged into [Migaku](https://study.migaku.com) in Chrome.
 
    <img src='media/migaku_export_words.jpeg' width='400'>
 
-4. Run `polyglotka import --chrome False` to import only from CSV files.
+4. Run `polyglotka import --chrome-migaku False` to skip the Chrome import for Migaku.
 
 ## Configure
 

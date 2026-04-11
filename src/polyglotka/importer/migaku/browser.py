@@ -1,6 +1,5 @@
 """Direct Migaku IndexedDB import by reading Chrome's storage files from disk."""
 
-import platform
 import sqlite3
 import tempfile
 import zlib
@@ -8,7 +7,7 @@ from typing import Any, Generator
 
 from path import Path
 
-from polyglotka.common.config import config
+from polyglotka.common.chrome import CHROME_PROFILE_NAMES, get_chrome_profile_path
 from polyglotka.common.console import pprint
 from polyglotka.common.exceptions import UserError
 from polyglotka.importer.migaku.importer import MigakuItem
@@ -16,40 +15,9 @@ from polyglotka.importer.migaku.importer import MigakuItem
 MIGAKU_DOMAIN = 'https_study.migaku.com_0'
 
 
-def _get_chrome_profile_path() -> Path:
-    """Auto-detect Chrome user data directory based on platform."""
-    if config.CHROME_DATA_DIR:
-        profile_path = Path(config.CHROME_DATA_DIR)
-        if not profile_path.exists():
-            raise UserError(f'Chrome profile path not found: {profile_path}')
-        return profile_path
-
-    system = platform.system()
-    home = Path.home()
-
-    if system == 'Darwin':  # macOS
-        base_path = home / 'Library/Application Support/Google/Chrome'
-    elif system == 'Windows':
-        base_path = home / 'AppData/Local/Google/Chrome/User Data'
-    elif system == 'Linux':
-        base_path = home / '.config/google-chrome'
-    else:
-        raise UserError(f'Unsupported platform: {system}. Please set MIGAKU_CHROME_PROFILE manually.')
-
-    if not base_path.exists():
-        raise UserError(
-            f'Chrome data not found at: {base_path}\n'
-            'Please install Chrome or set CHROME_DATA_DIR variable.'
-        )
-    return base_path
-
-
 def _find_migaku_blob_path(chrome_path: Path) -> Path:
     """Find the Migaku IndexedDB blob storage path."""
-    # Check common profile locations
-    profile_names = ['Default', 'Profile 1', 'Profile 2', 'Profile 3', 'Profile 4', 'Profile 5']
-
-    for profile_name in profile_names:
+    for profile_name in CHROME_PROFILE_NAMES:
         blob_dir = chrome_path / profile_name / 'IndexedDB' / f'{MIGAKU_DOMAIN}.indexeddb.blob'
         if blob_dir.exists():
             return blob_dir
@@ -131,7 +99,7 @@ def fetch_migaku_words_from_chrome(
     languages: list[str] | None = None,
 ) -> Generator[MigakuItem, None, None]:
     """Fetch Migaku words by reading Chrome's IndexedDB storage directly from disk."""
-    chrome_path = _get_chrome_profile_path()
+    chrome_path = get_chrome_profile_path()
     pprint(f'Reading from Chrome data: "{chrome_path}"')
 
     blob_dir = _find_migaku_blob_path(chrome_path)

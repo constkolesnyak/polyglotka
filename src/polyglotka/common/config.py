@@ -53,7 +53,9 @@ class _Config(BaseSettings):  # Singleton
     KNOWN_MORPHS_SAVE_LANGS: str = ''  # Example: 'ja,de'
 
     CHROME_DATA_DIR: str = ''  # Auto-detect if empty
-    CHROME: bool = True  # Use --chrome flag to import directly from Chrome's IndexedDB
+    CHROME: bool = True  # Master switch for direct-from-Chrome imports (Migaku + LR)
+    CHROME_MIGAKU: bool = True  # Set False to skip Migaku Chrome import when CHROME=True
+    CHROME_LR: bool = True  # Set False to skip Language Reactor Chrome import when CHROME=True
 
     @cached_property
     def plots_learning_stages(self):

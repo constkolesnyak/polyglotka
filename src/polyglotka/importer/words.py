@@ -50,14 +50,20 @@ def import_words(cache_allowed: bool = True) -> set[Word]:
     migaku_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.MGK_FILES_GLOB_PATTERN)
     lr_files: list[Path] = Path(config.EXPORTED_FILES_DIR).glob(config.LR_FILES_GLOB_PATTERN)
 
-    # Try Chrome import if --chrome flag is set and no CSV files found
+    # Try Chrome import if --chrome flag is set and no CSV/JSON files found
     browser_migaku_items: list[MigakuItem] = []
-    if config.CHROME and not migaku_files:
+    if config.CHROME and config.CHROME_MIGAKU and not migaku_files:
         from polyglotka.importer.migaku.browser import fetch_migaku_words_from_chrome
 
         browser_migaku_items = list(fetch_migaku_words_from_chrome())
 
-    if not (migaku_files + lr_files) and not browser_migaku_items:
+    browser_lr_items: list[LRSavedWord] = []
+    if config.CHROME and config.CHROME_LR and not lr_files:
+        from polyglotka.importer.language_reactor.browser import fetch_lr_items_from_chrome
+
+        browser_lr_items = [i for i in fetch_lr_items_from_chrome() if isinstance(i, LRSavedWord)]
+
+    if not (migaku_files + lr_files) and not browser_migaku_items and not browser_lr_items:
         files_not_found = f'Neither LR files "{config.LR_FILES_GLOB_PATTERN}" nor Migaku files "{config.MGK_FILES_GLOB_PATTERN}" are found in directory: "{config.EXPORTED_FILES_DIR}"'
 
         if not cache_allowed:
@@ -68,7 +74,9 @@ def import_words(cache_allowed: bool = True) -> set[Word]:
 
         return words_cache.read()
 
-    lr_items: list[LRSavedWord] = [i for i in import_lr_items(lr_files) if isinstance(i, LRSavedWord)]
+    lr_items: list[LRSavedWord] = [
+        i for i in import_lr_items(lr_files) if isinstance(i, LRSavedWord)
+    ] + browser_lr_items
     migaku_items: list[MigakuItem] = list(import_migaku_items(migaku_files)) + browser_migaku_items
     all_words: list[Word] = list(words_cache.read()) + [
         Word(**item.model_dump()) for item in (migaku_items + lr_items)
